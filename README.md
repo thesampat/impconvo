@@ -74,8 +74,16 @@ Chat Elevate is an AI-powered texting and conversation coach designed to help yo
 
 ## Screenshots
 
-<img src="docs/screenshot-chat.jpeg" width="300" alt="Chat Screen" />
-<img src="docs/screenshot-suggestions.jpeg" width="300" alt="Suggestions Screen" />
+| Loading Coached Suggestions | Viewing Coached Suggestions | Chat Conversation Flow |
+| :---: | :---: | :---: |
+| <img src="docs/screenshot-loading.jpeg" width="220" alt="Loading Screen" /> | <img src="docs/screenshot-suggestions.jpeg" width="220" alt="Suggestions Screen" /> | <img src="docs/screenshot-chat.jpeg" width="220" alt="Chat Screen" /> |
+
+## Demo Video
+
+<video src="docs/demo.mp4" width="320" controls>
+  Your browser does not support the video tag.
+</video>
+
 
 
 ## Quick Start
