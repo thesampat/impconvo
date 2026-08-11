@@ -74,9 +74,18 @@ Chat Elevate is an AI-powered texting and conversation coach designed to help yo
 
 ## Screenshots
 
+### WhatsApp Roleplay Example
+
 | Loading Coached Suggestions | Viewing Coached Suggestions | Chat Conversation Flow |
 | :---: | :---: | :---: |
 | <img src="docs/screenshot-loading.jpeg" width="220" alt="Loading Screen" /> | <img src="docs/screenshot-suggestions.jpeg" width="220" alt="Suggestions Screen" /> | <img src="docs/screenshot-chat.jpeg" width="220" alt="Chat Screen" /> |
+
+### Tinder Roleplay & Vibe Score Example
+
+| Suggestions Interface | Vibe Score Generating | Vibe Review Feedback Report |
+| :---: | :---: | :---: |
+| <img src="docs/tinder-suggestions.png" width="220" alt="Suggestions Interface" /> | <img src="docs/tinder-loading.png" width="220" alt="Vibe Loader" /> | <img src="docs/tinder-report.png" width="220" alt="Vibe Report" /> |
+
 
 ## Demo Video
 
