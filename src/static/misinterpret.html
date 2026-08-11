@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Miss Interpret - AI Texting Coach</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .vibe-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .vibe-charming {
+            background-color: rgba(138, 180, 248, 0.15);
+            color: var(--primary);
+        }
+
+        .vibe-absurd {
+            background-color: rgba(234, 67, 53, 0.15);
+            color: #ea4335;
+        }
+
+        .vibe-cocky {
+            background-color: rgba(168, 85, 247, 0.15);
+            color: #a855f7;
+        }
+
+        .misinterpret-bullet-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .misinterpret-bullet-item:last-child {
+            border-bottom: none;
+        }
+
+        .misinterpret-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .misinterpret-card-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Off-Canvas Sidebar Drawer Menu -->
+        <div id="sidebar-drawer-overlay" class="drawer-overlay hidden"></div>
+        <aside id="sidebar-drawer" class="sidebar-drawer closed">
+            <div class="drawer-header">
+                <div class="drawer-logo">
+                    <span class="logo-icon">✨</span>
+                    <span class="logo-title">Chat Elevate</span>
+                </div>
+                <button id="close-drawer-btn" class="close-btn">&times;</button>
+            </div>
+
+            <div class="drawer-body"
+                style="display: flex; flex-direction: column; gap: 20px; height: 100%; padding: 16px;">
+                <nav class="drawer-nav" style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="/" class="btn secondary-btn"
+                        style="justify-content: flex-start; padding: 0 16px; border-radius: 8px; border: none; text-decoration: none;">
+                        <span>💬</span> Simple Chat
+                    </a>
+                    <a href="/openers" class="btn secondary-btn"
+                        style="justify-content: flex-start; padding: 0 16px; border-radius: 8px; border: none; text-decoration: none;">
+                        <span>🔑</span> Get Openers
+                    </a>
+                    <a href="/misinterpret" class="btn secondary-btn active"
+                        style="justify-content: flex-start; padding: 0 16px; border-radius: 8px; border: none; background: rgba(138,180,248,0.08); color: var(--primary); text-decoration: none;">
+                        <span>😜</span> Miss Interpret
+                    </a>
+                    <a href="/banter" class="btn secondary-btn" style="justify-content: flex-start; padding: 0 16px; border-radius: 8px; border: none; text-decoration: none;">
+                        <span>⚡</span> Banter Arena
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Top App Header -->
+        <header class="app-header">
+            <button id="menu-toggle-btn" class="settings-icon-btn" title="Open Menu"
+                style="font-size: 20px; padding: 6px;">
+                ☰
+            </button>
+            <div class="header-logo" style="margin-left: auto; margin-right: auto;">
+                <span class="logo-icon">😜</span>
+                <span class="logo-title">Miss Interpret</span>
+            </div>
+            <div style="width: 32px;"></div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace-area" style="overflow-y: auto; padding: 16px;">
+            <div class="setup-container" id="misinterpret-setup-container">
+                <div class="setup-header" style="margin-bottom: 16px;">
+                    <h2 style="font-size: 18px; color: #fff;">😜 Miss Interpretation Master</h2>
+                    <p style="font-size: 13px; color: var(--text-muted);">Enter a texting line from your partner, and
+                        generate playful, flirty, or cocky "misinterpretations" to drive banter.</p>
+                </div>
+
+                <div class="setup-body">
+                    <div class="input-group">
+                        <label for="partner-text-input">What did your partner say?</label>
+                        <textarea id="partner-text-input" style="min-height: 80px;"
+                            placeholder="e.g. I had a really busy day today, barely had time to eat."></textarea>
+                    </div>
+                </div>
+
+                <div class="setup-footer">
+                    <button id="generate-btn" class="btn primary-btn full-width">
+                        <span>✨</span> Misinterpret It!
+                    </button>
+                </div>
+            </div>
+
+            <!-- Generated Misinterpretations Cards -->
+            <div id="misinterpret-results" class="hidden" style="margin-top: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <h3 style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 0; text-transform: uppercase; letter-spacing: 0.5px;">Banters & Misinterpretations</h3>
+                    <button id="misinterpret-back-btn" class="btn secondary-btn" style="padding: 6px 12px; font-size: 12px;">🔙 Back</button>
+                </div>
+                <div id="misinterpret-list"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">Copied to clipboard!</div>
+
+    <script>
+        // DOM Bindings
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const sidebarDrawer = document.getElementById('sidebar-drawer');
+        const sidebarDrawerOverlay = document.getElementById('sidebar-drawer-overlay');
+        const closeDrawerBtn = document.getElementById('close-drawer-btn');
+
+        const generateBtn = document.getElementById('generate-btn');
+        const partnerInput = document.getElementById('partner-text-input');
+        const setupContainer = document.getElementById('misinterpret-setup-container');
+        const resultsContainer = document.getElementById('misinterpret-results');
+        const misinterpretList = document.getElementById('misinterpret-list');
+        const backBtn = document.getElementById('misinterpret-back-btn');
+        const toast = document.getElementById('toast');
+
+        // Drawer Operations
+        menuToggleBtn.addEventListener('click', () => {
+            sidebarDrawer.classList.remove('closed');
+            sidebarDrawerOverlay.classList.remove('hidden');
+        });
+        const closeDrawer = () => {
+            sidebarDrawer.classList.add('closed');
+            sidebarDrawerOverlay.classList.add('hidden');
+        };
+        closeDrawerBtn.addEventListener('click', closeDrawer);
+        sidebarDrawerOverlay.addEventListener('click', closeDrawer);
+
+        // Back Button
+        backBtn.addEventListener('click', () => {
+            resultsContainer.classList.add('hidden');
+            setupContainer.classList.remove('hidden');
+        });
+
+        // Submit generation request
+        generateBtn.addEventListener('click', async () => {
+            const partnerText = partnerInput.value.trim();
+
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<div class="spinner"></div> Coaching Banters...';
+
+            try {
+                const res = await fetch('/api/misinterpret', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ partner_text: partnerText || "random" })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.detail || 'Could not fetch misinterpretations.');
+                }
+
+                const data = await res.json();
+                setupContainer.classList.add('hidden');
+                renderMisinterpretations(data);
+            } catch (e) {
+                console.error(e);
+                alert(e.message || 'Failed generating misinterpretations.');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<span>✨</span> Misinterpret It!';
+            }
+        });
+
+        function renderMisinterpretations(data) {
+            // Render the partner message at the top so the user knows what is being misinterpreted
+            misinterpretList.innerHTML = `
+                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 8px; border-left: 3px solid var(--primary); line-height: 1.4;">
+                    <strong>Partner:</strong> "${escapeHtml(data.partner_text)}"
+                </div>
+            `;
+
+            data.misinterpretations.forEach(item => {
+                let badgeClass = 'vibe-charming';
+                if (item.style.includes('Teasing') || item.style.includes('Absurd')) {
+                    badgeClass = 'vibe-absurd';
+                } else if (item.style.includes('Cocky') || item.style.includes('Reversed')) {
+                    badgeClass = 'vibe-cocky';
+                }
+
+                const row = document.createElement('div');
+                row.className = 'misinterpret-bullet-item';
+                row.innerHTML = `
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span class="vibe-badge ${badgeClass}" style="margin-bottom: 0;">${escapeHtml(item.style)}</span>
+                            </div>
+                            <p style="font-size: 14px; color: #fff; font-weight: 500; line-height: 1.4; margin: 4px 0 0 0;">"${escapeHtml(item.text)}"</p>
+                        </div>
+                        <button class="btn secondary-btn copy-btn" style="padding: 6px 10px; font-size: 11px; flex-shrink: 0; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                            📋 Copy
+                        </button>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 2px;">${escapeHtml(item.explanation)}</span>
+                `;
+
+                // Copy Event
+                row.querySelector('.copy-btn').addEventListener('click', () => {
+                    navigator.clipboard.writeText(item.text);
+                    showToast('Copied to clipboard!');
+                });
+
+                misinterpretList.appendChild(row);
+            });
+
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Helpers
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function showToast(message) {
+            toast.innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>

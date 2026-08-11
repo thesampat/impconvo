@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>✨ Chat Elevate - AI Chat Coach</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Off-Canvas Sidebar Drawer Menu -->
+        <div id="sidebar-drawer-overlay" class="drawer-overlay hidden"></div>
+        <aside id="sidebar-drawer" class="sidebar-drawer closed">
+            <div class="drawer-header">
+                <div class="drawer-logo">
+                    <span class="logo-icon">✨</span>
+                    <span class="logo-title">Chat Elevate</span>
+                </div>
+                <button id="close-drawer-btn" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="drawer-body" style="display: flex; flex-direction: column; gap: 20px; height: 100%; padding: 16px;">
+                <nav class="drawer-nav" style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="/" class="btn secondary-btn active" id="nav-simple-chat" style="justify-content: flex-start; padding: 0 16px; border-radius: 8px; border: none; background: rgba(138,180,248,0.08); color: var(--primary); text-decoration: none;">
+                        <span>💬</span> Simple Chat
+                    </a>
+                </nav>
+
+                <div class="drawer-actions-section" style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Vibe Review and End Scenario inside drawer to keep chat view clean -->
+                    <button id="vibe-review-btn" class="btn primary-btn full-width hidden" style="border-radius: 8px; justify-content: center; background-color: var(--primary-container); color: #fff; border: none;">
+                        📊 Get Vibe Review
+                    </button>
+                    <button id="drawer-end-scenario-btn" class="btn danger-btn full-width hidden" style="border-radius: 8px; justify-content: center;">
+                        🛑 End Chat Scenario
+                    </button>
+                </div>
+            </div>
+
+            <div class="drawer-footer" style="padding: 16px; border-top: 1px solid var(--border-color);">
+                <button id="settings-btn" class="btn secondary-btn full-width" style="border-radius: 8px;">
+                    ⚙️ Settings & Models
+                </button>
+            </div>
+        </aside>
+        <!-- Top App Header -->
+        <header class="app-header">
+            <button id="menu-toggle-btn" class="settings-icon-btn" title="Open Menu" style="font-size: 20px; padding: 6px;">
+                ☰
+            </button>
+            <div class="header-logo" style="margin-left: auto; margin-right: auto;">
+                <span class="logo-icon">✨</span>
+                <span class="logo-title">Chat Elevate</span>
+            </div>
+            <div class="header-actions">
+                <div id="api-status" class="api-status-dot key-missing" title="API Status"></div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace-area">
+            <!-- Simple Chat Tab Content -->
+            <section id="simple-chat-tab" class="tab-content active">
+                
+                <!-- Active Chat Thread View -->
+                <div id="chat-thread-view" class="chat-thread-container" style="position: relative;">
+                    <!-- Clean, lightweight scenario banner -->
+                    <div class="scenario-banner" style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color); padding: 8px 12px; font-size: 11.5px; line-height: 1.3; color: var(--text-muted);">
+                        <strong style="color: var(--primary);">Scenario:</strong> <span id="chat-scenario-desc">Type your first message (with context prefix, e.g. "I found this girl's bag in coffee shop. hey how are you") to start texting!</span>
+                    </div>
+
+                    <div id="chat-history-viewport" class="chat-history-viewport">
+                        <!-- Dynamic message bubbles will append here -->
+                    </div>
+
+
+
+                    <div class="chat-input-composer-wrapper" style="position: relative; display: flex; flex-direction: column; width: 100%;">
+                        <!-- Floating composer suggestions box -->
+                        <div id="composer-suggestions-box" class="composer-suggestions-box hidden"></div>
+                        
+                        <div class="chat-input-composer">
+                            <button id="get-suggestions-btn" class="composer-action-btn" title="Get texting suggestions" style="background: transparent; border: none; color: var(--primary); font-size: 16px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);">✨</button>
+                            <textarea id="chat-message-input" placeholder="Type a message to reply..."></textarea>
+                            <button id="send-message-btn" class="btn primary-btn">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Get Openers Tab Content (Placeholder) -->
+            <section id="get-openers-tab" class="tab-content">
+                <div class="placeholder-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 20px; color: var(--text-muted);">
+                    <span class="placeholder-icon" style="font-size: 40px; margin-bottom: 10px;">🔑</span>
+                    <h2 style="color: #fff; font-size: 18px; margin-bottom: 6px;">Get Openers</h2>
+                    <p style="font-size: 13px;">This section is coming soon. You'll be able to draft high-engagement openers for your chats.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel animate-zoom">
+            <div class="modal-header">
+                <h2>⚙️ Settings & Configuration</h2>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="model-select">Gemini Model</label>
+                    <select id="model-select" class="model-dropdown">
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Standard)</option>
+                        <option value="gemini-3.5-flash">Gemini 3.5 Flash (High Quality)</option>
+                    </select>
+                </div>
+                <div class="status-help">
+                    <p>API Key is configured on the backend server.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-settings-btn" class="btn secondary-btn">Cancel</button>
+                <button id="save-settings-btn" class="btn primary-btn">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vibe Review Modal -->
+    <div id="vibe-review-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel animate-zoom" style="max-width: 800px; width: 90%; max-height: 85%; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h2>🌟 Vibe Review Report</h2>
+                <button id="close-vibe-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div id="vibe-review-body" class="modal-body" style="overflow-y: auto; flex-grow: 1; padding-right: 8px;">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button id="close-vibe-footer-btn" class="btn primary-btn">Close Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">Copied to clipboard!</div>
+
+    <script src="/static/app.js?v=7"></script>
+</body>
+</html>
