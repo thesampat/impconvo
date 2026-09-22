@@ -150,7 +150,9 @@ def extract_text_content(content) -> str:
         return "".join(parts).strip()
     return str(content).strip()
 
-def generate_scenario(context: str, model_name: Optional[str] = None) -> Dict:
+from src.usage_tracker import record_user_usage, extract_tokens_from_llm_response
+
+def generate_scenario(context: str, model_name: Optional[str] = None, user_id: Optional[str] = None) -> Dict:
     llm = get_llm(json_mode=True, model_name=model_name)
     
     prompt = f"""Design a texting roleplay scenario under this context: "{context}".
@@ -161,13 +163,18 @@ You must return a valid JSON object matching this schema:
 }}
 """
     response = llm.invoke(prompt)
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=prompt)
+        record_user_usage(user_id, tokens)
+        
     return clean_json_response(response.content)
 
 def generate_next_reply(
     context: str,
     scenario: str,
     history: List[Dict],
-    model_name: Optional[str] = None
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> str:
     llm = get_llm(model_name=model_name)
     
@@ -184,7 +191,12 @@ def generate_next_reply(
         "context": context,
         "scenario": scenario
     })
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=context + scenario)
+        record_user_usage(user_id, tokens)
+        
     return extract_text_content(response.content)
+
 
 IMPROVE_SYSTEM_PROMPT = """You are a razor-sharp social and texting coach. Your job is to analyze the conversation and generate 3 short, punchy, alternative replies that feel natural, witty, and interesting.
 
@@ -251,7 +263,8 @@ def generate_improved_options(
     scenario: str,
     history: List[Dict],
     message_to_improve: str,
-    model_name: Optional[str] = None
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> Dict:
     llm = get_llm(json_mode=True, model_name=model_name)
     
@@ -270,6 +283,10 @@ def generate_improved_options(
         "scenario": scenario,
         "message_to_improve": message_to_improve
     })
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=message_to_improve)
+        record_user_usage(user_id, tokens)
+        
     return clean_json_response(response.content)
 
 VIBE_REVIEW_SYSTEM_PROMPT = """You are an expert social coach reviewing a texting conversation between the user (referred to as "Me") and their partner (referred to as "Them").
@@ -297,7 +314,8 @@ def generate_vibe_review(
     context: str,
     scenario: str,
     history: List[Dict],
-    model_name: Optional[str] = None
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> Dict:
     llm = get_llm(json_mode=True, model_name=model_name)
     
@@ -315,6 +333,10 @@ def generate_vibe_review(
         "context": context,
         "scenario": scenario
     })
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=context + scenario)
+        record_user_usage(user_id, tokens)
+        
     return clean_json_response(response.content)
 
 INITIATE_SYSTEM_PROMPT = """You are a creative texting coach. The user is starting a texting conversation.
@@ -343,7 +365,8 @@ Do not include any markdown format blocks, just return raw JSON."""
 
 def initiate_chat_scenario(
     user_first_input: str,
-    model_name: Optional[str] = None
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> Dict:
     llm = get_llm(json_mode=True, model_name=model_name)
     
@@ -356,7 +379,12 @@ def initiate_chat_scenario(
     response = chain.invoke({
         "user_first_input": user_first_input
     })
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=user_first_input)
+        record_user_usage(user_id, tokens)
+        
     return clean_json_response(response.content)
+
 
 
 

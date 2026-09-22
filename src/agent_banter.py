@@ -58,10 +58,13 @@ Return a valid JSON object like this:
 No markdown. Raw JSON only."""
 
 
+from src.usage_tracker import record_user_usage, extract_tokens_from_llm_response
+
 def generate_banter_agent(
     topic: Optional[str] = None,
     num_turns: int = 8,
-    model_name: Optional[str] = None
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> Dict:
     # Pick a random topic if none provided
     if not topic:
@@ -86,7 +89,12 @@ def generate_banter_agent(
     ])
 
     response = llm.invoke([message])
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=topic)
+        record_user_usage(user_id, tokens)
+
     result = clean_json_response(response.content)
     result["persona_a"] = persona_a["name"]
     result["persona_b"] = persona_b["name"]
     return result
+

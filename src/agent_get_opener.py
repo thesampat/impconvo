@@ -77,10 +77,13 @@ You must return a valid JSON object matching this schema:
 
 Do not include any markdown format blocks, just output raw JSON."""
 
+from src.usage_tracker import record_user_usage, extract_tokens_from_llm_response
+
 def generate_openers_agent(
     scenario_text: str,
     image_base64: Optional[str] = None,
-    model_name: Optional[str] = None
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> Dict:
     # Use Gemini model with json mode enabled
     llm = get_llm(json_mode=True, model_name=model_name)
@@ -111,6 +114,10 @@ def generate_openers_agent(
     
     # Run the model
     response = llm.invoke([message])
-    
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=scenario_text)
+        record_user_usage(user_id, tokens)
+        
     # Parse and clean response
     return clean_json_response(response.content)
+

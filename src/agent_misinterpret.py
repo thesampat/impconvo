@@ -66,9 +66,12 @@ RANDOM_PARTNER_TEXTS = [
     "I just finished a 5k run."
 ]
 
+from src.usage_tracker import record_user_usage, extract_tokens_from_llm_response
+
 def generate_misinterpretations_agent(
     partner_text: str,
-    model_name: Optional[str] = None
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> Dict:
     # If empty or says 'random', choose a random texting line from our collection
     cleaned_input = partner_text.strip().lower() if partner_text else ""
@@ -84,7 +87,12 @@ def generate_misinterpretations_agent(
     ])
     
     response = llm.invoke([message])
+    if user_id:
+        tokens = extract_tokens_from_llm_response(response, fallback_text=partner_text)
+        record_user_usage(user_id, tokens)
+        
     result = clean_json_response(response.content)
     # Ensure partner_text is returned correctly
     result["partner_text"] = partner_text
     return result
+

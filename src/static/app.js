@@ -1,9 +1,100 @@
+// Global User ID & Fetch Interceptor for Token Tracking
+function getUserId() {
+    let uid = localStorage.getItem('user_id');
+    if (!uid) {
+        uid = 'usr_' + Math.random().toString(36).substring(2, 12);
+        localStorage.setItem('user_id', uid);
+    }
+    return uid;
+}
+
+const _originalFetch = window.fetch;
+window.fetch = async function (url, options = {}) {
+    options = options || {};
+    if (options.headers instanceof Headers) {
+        options.headers.set('X-User-ID', getUserId());
+    } else {
+        options.headers = options.headers || {};
+        options.headers['X-User-ID'] = getUserId();
+    }
+    const response = await _originalFetch(url, options);
+
+    // Auto refresh token usage widget if calling API endpoints
+    const urlStr = typeof url === 'string' ? url : url.url;
+    if (urlStr && urlStr.includes('/api/') && !urlStr.includes('/api/user-usage')) {
+        if (typeof fetchUserUsage === 'function') {
+            setTimeout(fetchUserUsage, 300);
+        }
+    }
+
+    // Handle 429 Rate Limit Exceeded
+    if (response.status === 429) {
+        try {
+            const clone = response.clone();
+            const errData = await clone.json();
+            alert(`⚠️ Daily Token Limit Reached!\n\n${errData.detail || 'You have exceeded your daily token quota. Please try again tomorrow.'}`);
+        } catch (e) { }
+    }
+
+    return response;
+};
+
 // Application State
 let activeTab = 'simple-chat';
 let chatHistory = [];
+
 let currentContext = '';
 let currentScenario = '';
 let hasApiKey = false;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    fetchConfig();
+    fetchUserUsage();
+    setupEventListeners();
+    checkOpenersDeepLink();
+});
+
+async function fetchUserUsage() {
+    try {
+        const res = await _originalFetch('/api/user-usage', {
+            headers: { 'X-User-ID': getUserId() }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            updateTokenUsageUI(data);
+        }
+    } catch (e) {
+        console.error('Error fetching token usage:', e);
+    }
+}
+
+function updateTokenUsageUI(data) {
+    if (!data) return;
+    const used = data.tokens_used || 0;
+    const limit = data.daily_limit || 50000;
+    const remaining = data.remaining_tokens !== undefined ? data.remaining_tokens : Math.max(0, limit - used);
+    const percentage = Math.min(100, Math.round((used / limit) * 100));
+
+    const usageTextEl = document.getElementById('token-usage-text');
+    const barEl = document.getElementById('token-usage-bar');
+    const remainingTextEl = document.getElementById('token-remaining-text');
+
+    const formattedLimit = limit >= 1000 ? (limit / 1000) + 'k' : limit;
+    if (usageTextEl) usageTextEl.innerText = `${used.toLocaleString()} / ${formattedLimit}`;
+    if (remainingTextEl) remainingTextEl.innerText = remaining.toLocaleString();
+    if (barEl) {
+        barEl.style.width = percentage + '%';
+        if (percentage >= 100) {
+            barEl.style.background = '#ea4335';
+        } else if (percentage > 75) {
+            barEl.style.background = '#fbbc04';
+        } else {
+            barEl.style.background = 'linear-gradient(90deg, #8ab4f8, #c58af9)';
+        }
+    }
+}
+
 
 // DOM Elements
 const navSimpleChat = document.getElementById('nav-simple-chat');
@@ -56,68 +147,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Setup Event Listeners
 function setupEventListeners() {
-    // Navigation Tabs
-    // Navigation tabs are handled by native anchors and drawer toggle hooks
-    
     // Active Chat Sending
-    sendMessageBtn.addEventListener('click', handleSendMessage);
-    chatMessageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    });
+    if (sendMessageBtn) sendMessageBtn.addEventListener('click', handleSendMessage);
+    if (chatMessageInput) {
+        chatMessageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+            }
+        });
+    }
 
     // Reset Scenario
-    resetChatBtn.addEventListener('click', handleResetScenario);
+    if (resetChatBtn) resetChatBtn.addEventListener('click', handleResetScenario);
 
     // Settings Modal
-    settingsBtn.addEventListener('click', () => {
-        closeDrawer();
-        settingsModal.classList.remove('hidden');
-    });
-    
-    const hideSettings = () => settingsModal.classList.add('hidden');
-    closeModalBtn.addEventListener('click', hideSettings);
-    cancelSettingsBtn.addEventListener('click', hideSettings);
-    saveSettingsBtn.addEventListener('click', saveConfig);
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            closeDrawer();
+            if (settingsModal) settingsModal.classList.remove('hidden');
+        });
+    }
+
+    const hideSettings = () => { if (settingsModal) settingsModal.classList.add('hidden'); };
+    if (closeModalBtn) closeModalBtn.addEventListener('click', hideSettings);
+    if (cancelSettingsBtn) cancelSettingsBtn.addEventListener('click', hideSettings);
+    if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', saveConfig);
 
     // Sidebar Drawer Toggle Events
-    console.log("Binding toggle drawer elements:", {menuToggleBtn, closeDrawerBtn, sidebarDrawerOverlay});
-    menuToggleBtn.addEventListener('click', (e) => {
-        console.log("Menu toggle button clicked!", e);
-        openDrawer();
-    });
-    closeDrawerBtn.addEventListener('click', closeDrawer);
-    sidebarDrawerOverlay.addEventListener('click', closeDrawer);
-    navSimpleChat.addEventListener('click', (e) => {
-        e.preventDefault();
-        switchTab('simple-chat');
-        closeDrawer();
-    });
+    if (menuToggleBtn) {
+        menuToggleBtn.addEventListener('click', (e) => {
+            openDrawer();
+        });
+    }
+    if (closeDrawerBtn) closeDrawerBtn.addEventListener('click', closeDrawer);
+    if (sidebarDrawerOverlay) sidebarDrawerOverlay.addEventListener('click', closeDrawer);
+    if (navSimpleChat) {
+        navSimpleChat.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab('simple-chat');
+            closeDrawer();
+        });
+    }
 
     // Composer Text Suggestions Trigger
-    getSuggestionsBtn.addEventListener('click', handleGetComposerSuggestions);
+    if (getSuggestionsBtn) getSuggestionsBtn.addEventListener('click', handleGetComposerSuggestions);
 
     // Vibe Review Modal Toggle Events
-    vibeReviewBtn.addEventListener('click', () => {
-        closeDrawer();
-        handleGetVibeReview();
-    });
-    const hideVibeModal = () => vibeReviewModal.classList.add('hidden');
-    closeVibeModalBtn.addEventListener('click', hideVibeModal);
-    closeVibeFooterBtn.addEventListener('click', hideVibeModal);
+    if (vibeReviewBtn) {
+        vibeReviewBtn.addEventListener('click', () => {
+            closeDrawer();
+            handleGetVibeReview();
+        });
+    }
+    const hideVibeModal = () => { if (vibeReviewModal) vibeReviewModal.classList.add('hidden'); };
+    if (closeVibeModalBtn) closeVibeModalBtn.addEventListener('click', hideVibeModal);
+    if (closeVibeFooterBtn) closeVibeFooterBtn.addEventListener('click', hideVibeModal);
 }
+
 
 // Fetch Backend Configuration
 async function fetchConfig() {
     try {
         const res = await fetch('/api/config');
         const data = await res.json();
-        
+
         hasApiKey = data.has_key;
         updateApiKeyStatus(hasApiKey);
-        
+
         if (data.model_name && modelSelect) {
             modelSelect.value = data.model_name;
         }
@@ -139,17 +236,17 @@ function updateApiKeyStatus(active) {
 
 async function saveConfig() {
     const model = modelSelect ? modelSelect.value : 'gemini-2.5-flash';
-    
+
     saveSettingsBtn.innerText = 'Saving...';
     saveSettingsBtn.disabled = true;
-    
+
     try {
         const res = await fetch('/api/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ model_name: model })
         });
-        
+
         if (res.ok) {
             settingsModal.classList.add('hidden');
             showToast('Configuration updated!');
@@ -182,10 +279,10 @@ function handleResetScenario() {
     currentContext = '';
     currentScenario = '';
     chatMessageInput.value = '';
-    
+
     // Reset scenario label text
     chatScenarioDesc.innerText = 'Type your first message (with context prefix, e.g. "I found this girl\'s bag in coffee shop. hey how are you") to start texting!';
-    
+
     renderMessages();
     resetChatBtn.classList.add('hidden');
     vibeReviewBtn.classList.add('hidden');
@@ -283,7 +380,7 @@ async function handleSendMessage() {
             }
 
             const data = await res.json();
-            
+
             removeThinkingIndicator();
 
             chatHistory.push({
@@ -348,7 +445,7 @@ function removeThinkingIndicator() {
 // Render dynamic chat bubbles
 function renderMessages() {
     chatHistoryViewport.innerHTML = '';
-    
+
     chatHistory.forEach((msg, idx) => {
         const isMe = msg.sender === 'Me';
         const row = document.createElement('div');
@@ -394,11 +491,11 @@ function showToast(message) {
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 // Helper: Try to extract a clean string from a structured message payload (e.g. JSON or Python dict strings)
@@ -428,13 +525,13 @@ async function improveMyMessage(index) {
     const msg = chatHistory[index];
     const popover = document.getElementById(`alternatives-box-${index}`);
     if (!popover) return;
-    
+
     // Toggle popover visibility if already open
     if (!popover.classList.contains('hidden')) {
         popover.classList.add('hidden');
         return;
     }
-    
+
     popover.innerHTML = `
         <div style="display:flex; align-items:center; gap:8px; padding:10px 0; color:var(--text-muted); font-size:12px;">
             <div class="spinner" style="width:12px; height:12px; margin:0;"></div>
@@ -442,10 +539,10 @@ async function improveMyMessage(index) {
         </div>
     `;
     popover.classList.remove('hidden');
-    
+
     // Send previous history preceding the target message
     const precedingHistory = chatHistory.slice(0, index);
-    
+
     try {
         const res = await fetch('/api/improve-message', {
             method: 'POST',
@@ -457,29 +554,29 @@ async function improveMyMessage(index) {
                 message_to_improve: msg.body
             })
         });
-        
+
         if (!res.ok) {
             const errData = await res.json();
             throw new Error(errData.detail || 'Failed getting options');
         }
-        
+
         const data = await res.json();
-        
+
         // Render 3 alternatives buttons
         popover.innerHTML = `
             <div class="alternatives-list">
                 <div class="alt-title">💫 AI Alternatives:</div>
                 ${(Array.isArray(data.alternatives) ? data.alternatives : []).map((alt, i) => {
-                    const text = (typeof alt === 'object' && alt !== null) ? (alt.text || '') : alt;
-                    return `
+            const text = (typeof alt === 'object' && alt !== null) ? (alt.text || '') : alt;
+            return `
                         <button class="alt-option-btn" onclick="replaceMessageText(${index}, '${escapeHtmlForJs(text)}')">
                             "${escapeHtml(text)}"
                         </button>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
-        
+
     } catch (e) {
         console.error(e);
         popover.innerHTML = `<div style="color:#ef4444; font-size:12px; padding:8px 0;">Error: ${escapeHtml(e.message)}</div>`;
@@ -495,11 +592,11 @@ function replaceMessageText(index, newText) {
 function escapeHtmlForJs(unsafe) {
     if (!unsafe) return '';
     return unsafe
-         .replace(/\\/g, '\\\\')
-         .replace(/'/g, "\\'")
-         .replace(/"/g, '\\"')
-         .replace(/\n/g, '\\n')
-         .replace(/\r/g, '\\r');
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r');
 }
 
 // Fetch Post-Chat Vibe Review Report from Gemini
@@ -512,7 +609,7 @@ async function handleGetVibeReview() {
         </div>
     `;
     vibeReviewModal.classList.remove('hidden');
-    
+
     try {
         const res = await fetch('/api/vibe-review', {
             method: 'POST',
@@ -523,15 +620,15 @@ async function handleGetVibeReview() {
                 chat_history: chatHistory
             })
         });
-        
+
         if (!res.ok) {
             const errData = await res.json();
             throw new Error(errData.detail || 'Failed generation.');
         }
-        
+
         const data = await res.json();
         renderVibeReviewReport(data);
-        
+
     } catch (e) {
         console.error(e);
         vibeReviewBody.innerHTML = `
@@ -581,7 +678,7 @@ function renderVibeReviewReport(data) {
 function openDrawer() {
     console.log("openDrawer triggered!");
     if (!sidebarDrawer || !sidebarDrawerOverlay) {
-        console.error("Drawer elements missing:", {sidebarDrawer, sidebarDrawerOverlay});
+        console.error("Drawer elements missing:", { sidebarDrawer, sidebarDrawerOverlay });
         return;
     }
     sidebarDrawer.classList.remove('closed');
@@ -592,7 +689,7 @@ function openDrawer() {
 function closeDrawer() {
     console.log("closeDrawer triggered!");
     if (!sidebarDrawer || !sidebarDrawerOverlay) {
-        console.error("Drawer elements missing:", {sidebarDrawer, sidebarDrawerOverlay});
+        console.error("Drawer elements missing:", { sidebarDrawer, sidebarDrawerOverlay });
         return;
     }
     sidebarDrawer.classList.add('closed');
@@ -636,7 +733,7 @@ async function handleGetComposerSuggestions() {
         }
 
         const data = await res.json();
-        
+
         // Render alternatives inside the box (flat list, no labels or explanations)
         composerSuggestionsBox.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
@@ -645,13 +742,13 @@ async function handleGetComposerSuggestions() {
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 ${(Array.isArray(data.alternatives) ? data.alternatives : []).map((alt, idx) => {
-                    const text = (typeof alt === 'object' && alt !== null) ? (alt.text || '') : alt;
-                    return `
+            const text = (typeof alt === 'object' && alt !== null) ? (alt.text || '') : alt;
+            return `
                         <button class="alt-option-btn" data-index="${idx}" style="width: 100%; text-align: left; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); color: #fff; cursor: pointer; font-size: 13.5px; transition: var(--transition);">
                             "${escapeHtml(text)}"
                         </button>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
 
@@ -681,16 +778,16 @@ async function handleGetComposerSuggestions() {
 async function checkOpenersDeepLink() {
     const preOpener = sessionStorage.getItem('pre_opener');
     const preContext = sessionStorage.getItem('pre_context');
-    
+
     if (preOpener && preContext) {
         // Clear immediately so reload does not loop
         sessionStorage.removeItem('pre_opener');
         sessionStorage.removeItem('pre_context');
-        
+
         // Populate input field with the combined context + opener text
         const combinedInput = `${preContext}\n${preOpener}`;
         chatMessageInput.value = combinedInput;
-        
+
         // Trigger sending
         console.log("Deep link opener detected, starting chat automatically...");
         handleSendMessage();

@@ -75,7 +75,8 @@
                 <button id="close-drawer-btn" class="close-btn">&times;</button>
             </div>
             
-            <div class="drawer-body" style="display: flex; flex-direction: column; gap: 20px; height: 100%; padding: 16px;">
+            <div class="drawer-body" style="display: flex; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto; padding: 16px;">
+
                 <nav class="drawer-nav" style="display: flex; flex-direction: column; gap: 8px;">
                     <a href="/" class="btn secondary-btn" style="justify-content: flex-start; padding: 0 16px; border-radius: 8px; border: none; text-decoration: none;">
                         <span>💬</span> Simple Chat
@@ -90,8 +91,23 @@
                         <span>⚡</span> Banter Arena
                     </a>
                 </nav>
+
+                <div class="token-usage-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-top: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">⚡ Daily Tokens</span>
+                        <span id="token-usage-text" style="font-size: 12px; font-weight: 700; color: var(--primary);">0 / 50k</span>
+                    </div>
+                    <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                        <div id="token-usage-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #8ab4f8, #c58af9); transition: width 0.4s ease;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11px; color: var(--text-muted);">
+                        <span>Remaining: <strong id="token-remaining-text" style="color: #fff;">50,000</strong></span>
+                        <span style="font-size: 10px; opacity: 0.7;">Resets daily</span>
+                    </div>
+                </div>
             </div>
         </aside>
+
 
         <!-- Top App Header -->
         <header class="app-header">

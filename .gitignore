@@ -11,4 +11,5 @@ wheels/
 
 # Secrets — never commit
 .env
+usage.db
 android
