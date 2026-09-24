@@ -1,4 +1,9 @@
 import os
+import sys
+
+# Ensure project root is in sys.path when running as a script (e.g. `python src/main.py`)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -19,8 +24,39 @@ from src.schemas import StartChatRequest, StartChatResponse, SendMessageRequest,
 from src.agent import generate_scenario, generate_next_reply, generate_improved_options, generate_vibe_review, initiate_chat_scenario
 from src.agent_get_opener import generate_openers_agent
 from src.agent_misinterpret import generate_misinterpretations_agent
-from src.agent_banter import generate_banter_agent
 from src.usage_tracker import is_user_within_quota, get_user_usage
+import logging
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+logger = logging.getLogger("improveconvo")
+
+def extract_persona_from_request(req_model, request: Request = None) -> str:
+    val = (
+        getattr(req_model, "persona_type", None)
+        or getattr(req_model, "partner_persona", None)
+        or getattr(req_model, "persona", None)
+        or getattr(req_model, "mode", None)
+    )
+    if not val and hasattr(req_model, "__dict__"):
+        d = req_model.__dict__
+        val = d.get("persona_type") or d.get("partner_persona") or d.get("persona") or d.get("mode")
+    if not val and request:
+        val = (
+            request.query_params.get("persona_type")
+            or request.query_params.get("partner_persona")
+            or request.query_params.get("persona")
+            or request.query_params.get("mode")
+        )
+    if not val and request:
+        val = (
+            request.headers.get("x-persona-type")
+            or request.headers.get("x-partner-persona")
+            or request.headers.get("x-persona")
+        )
+    return (val or "normal").strip().lower()
 
 @app.middleware("http")
 async def token_restriction_middleware(request: Request, call_next):
@@ -94,12 +130,14 @@ def api_start_chat(req: StartChatRequest, request: Request):
     try:
         model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
         user_id = getattr(request.state, "user_id", None)
-        result = generate_scenario(context=req.context, model_name=model_name, user_id=user_id)
+        persona = extract_persona_from_request(req, request)
+        result = generate_scenario(context=req.context, model_name=model_name, user_id=user_id, partner_persona=persona)
         return StartChatResponse(
             scenario=result.get("scenario", "Standard texting scenario"),
             first_message=result.get("first_message", "Hey!")
         )
     except Exception as e:
+        logger.error(f"[/api/start-chat] error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/send-message", response_model=SendMessageResponse)
@@ -107,6 +145,7 @@ def api_send_message(req: SendMessageRequest, request: Request):
     try:
         model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
         user_id = getattr(request.state, "user_id", None)
+        persona = extract_persona_from_request(req, request)
         
         # Convert history models to dicts
         history_dicts = [
@@ -122,10 +161,12 @@ def api_send_message(req: SendMessageRequest, request: Request):
             scenario=req.scenario,
             history=history_dicts,
             model_name=model_name,
-            user_id=user_id
+            user_id=user_id,
+            partner_persona=persona
         )
-        return SendMessageResponse(reply=reply)
+        return SendMessageResponse(reply=reply, persona_type=persona)
     except Exception as e:
+        logger.error(f"[/api/send-message] error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/improve-message")
@@ -191,10 +232,12 @@ def api_initiate_chat(req: InitiateChatRequest, request: Request):
     try:
         model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
         user_id = getattr(request.state, "user_id", None)
+        persona = extract_persona_from_request(req, request)
         result = initiate_chat_scenario(
             user_first_input=req.user_first_input,
             model_name=model_name,
-            user_id=user_id
+            user_id=user_id,
+            partner_persona=persona
         )
         return InitiateChatResponse(
             context=result.get("context", "No context parsed."),
@@ -203,7 +246,32 @@ def api_initiate_chat(req: InitiateChatRequest, request: Request):
             partner_reply=result.get("partner_reply", "Hey!")
         )
     except Exception as e:
+        logger.error(f"[/api/initiate-chat] error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/generate-scenario")
+@app.post("/api/generate-scenario/")
+@app.get("/api/generate-scenario")
+@app.get("/api/generate-scenario/")
+async def api_generate_scenario(request: Request):
+    try:
+        body = await request.json() if request.method == "POST" else {}
+    except Exception:
+        body = {}
+    prev = body.get("previous_scenario")
+    import random
+    fallbacks = [
+        "Matched with a girl on Hinge who said 'Worst roommate horror story gets a drink'. Hey, does a roommate who microwaved fish at 3 AM qualify for that drink?",
+        "Met someone at a concert after losing our friends in the crowd. Hey, did you ever find your friends or are you still wandering near the sound booth?",
+        "Texting someone I met at a board game cafe who was surprisingly competitive at Catan. Hey, I'm ready to forgive you for stealing my longest road, but barely.",
+        "Matched on Bumble with someone whose profile prompt is 'Change my mind: Star Wars > Lord of the Rings'. Hey, prepare yourself because I have a 5-point rebuttal ready.",
+        "Met someone at an airport terminal waiting for a 3-hour delayed flight. Hey, did your flight ever take off or did you end up adopting the airport as your home?",
+        "Talking to a girl from my run club who outpaced everyone including the coach. Hey, give me a 5-minute head start next Tuesday or I'm bringing rollerblades.",
+        "Matched on Tinder with someone holding a microphone at a comedy open mic. Hey, what's worse: bombing on stage or receiving bad Tinder pickup lines?",
+        "Exchanged numbers after arguing over who ordered the last almond croissant at a bakery. Hey, that croissant was life-changing—I forgive you for trying to steal it."
+    ]
+    candidates = [s for s in fallbacks if s != prev]
+    return {"scenario": random.choice(candidates) if candidates else random.choice(fallbacks)}
 
 @app.get("/openers")
 def get_openers_page():

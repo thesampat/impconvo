@@ -1,10 +1,24 @@
 import os
 import json
 import re
-from typing import List, Dict, Optional
+import logging
+from typing import List, Dict, Optional, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, AIMessage
+
+# Suppress Google GenAI SDK's deprecation warning for direct AFC on generate_content
+try:
+    from google.genai.models import Models, AsyncModels
+    Models._logged_afc_warning = True
+    AsyncModels._logged_afc_warning = True
+except Exception:
+    pass
+
+# Filter the specific AFC warning if emitted by google_genai.models logger
+logging.getLogger("google_genai.models").addFilter(
+    lambda record: "Direct use of automatic function calling (AFC)" not in record.getMessage()
+)
 
 SCENARIO_SYSTEM_PROMPT = """You are a creative texting coach. Based on the user's provided context, you must design a specific realistic texting scenario and draft the first message to start the roleplay.
 If the context is empty, generic, or requests a random scenario, select a random, engaging, and realistic texting scenario (e.g. matched on Hinge, talking to a classmate about homework, texting a friend after a party).
@@ -20,52 +34,67 @@ You must return a valid JSON object matching this schema:
 
 Do not include any markdown format blocks, just output raw JSON."""
 
-ROLEPLAY_SYSTEM_PROMPT = """You are roleplaying as the conversational partner of the user.
-  "first_message": "The very first casual message sent by the partner to start the conversation (under 6-10 words)."
-}}
+def get_partner_system_prompt(persona: Optional[str] = "normal") -> str:
+    p = (persona or "normal").strip().lower()
+    
+    if p in ["intermediate", "medium", "playful"]:
+        instructions = """Roleplay Persona: INTERMEDIATE (Playful, Sparky & Engaging)
+1. You are a fun, expressive conversational partner (e.g. someone on a dating app with good energy, or a fun friend).
+2. Conversational style: You have great rhythm. You casually drop light quips, playfully tease back, and ask engaging questions.
+3. You match the user's energy: when they banter or flirt, you playfully banter back without being mean or overly intense.
+4. Keep replies CASUAL, natural, and SHORT (1 short sentence or phrase, under 10-12 words). Write like real texts."""
+    elif p in ["extraordinary", "advanced", "witty", "expert"]:
+        instructions = """Roleplay Persona: EXTRAORDINARY (High-Banter & Quick-Witted Sparring Partner)
+1. You are an exceptionally clever, quick-witted, and charismatic conversationalist.
+2. Conversational style: You actively test the user, keep them on their toes, and use advanced humor techniques:
+   - Playful push-and-pull, witty callbacks, mock arrogance, deadpan twists, and friendly ribbing.
+3. You do NOT give generic, easy, or passive replies. You make the user earn the conversation while keeping it fun, flirtatious, and charming.
+4. Keep replies extremely punchy, sharp, and SHORT (under 10 words)."""
+    else:
+        # Default: normal
+        instructions = """Roleplay Persona: NORMAL (Dry, Low-Investment Everyday Texter)
+You are an authentic, low-investment everyday texter (like someone casually texting on a dating app or WhatsApp with very low effort).
 
-Do not include any markdown format blocks, just output raw JSON."""
+CRITICAL BEHAVIOR RULES:
+1. When the user sends a statement, tease, joke, observation, story, greeting, or banter (ANY message that is NOT a direct question):
+   - Do NOT reply to what they said, do NOT continue their topic, do NOT banter back, and do NOT match energy.
+   - Reply ONLY with a short, dry reaction.
+   - Typical reactions to use:
+     "oh okay"
+     "lol"
+     "oh nice"
+     "good"
+     "hmm nice"
+     "haha"
+     "cool"
+     "lol okay"
+     "nice"
+     "haha what"
+     "damn"
+     "okay"
+   - Output ONLY the reaction (1 to 3 words maximum). No extra sentences, no explanations.
 
-PARTNER_ROLEPLAY_SYSTEM_PROMPT = """You are roleplaying as the conversational partner of the user.
+2. ONLY reply with real words/information when STRICTLY NECESSARY FOR A DIRECT QUESTION:
+   - If the user asks a direct question (e.g. "what are your top 3 toppings?", "what do you do?"), give a very brief, plain answer (e.g. "pepperoni and mushrooms", "in marketing").
+   - NEVER ask questions back (NEVER ask "what about you?", "hbu?", "yours?", or "what about yours?").
+   - Do not try to keep the conversation going.
+
+3. Keep all messages extremely short (1 to 5 words maximum). Keep it dry and low effort."""
+
+    return f"""You are roleplaying as the conversational partner of the user.
 Below are the details of the conversation:
-- Context: {context}
-- Scenario chosen: {scenario}
+- Context: {{context}}
+- Scenario chosen: {{scenario}}
 
-Roleplay Guidelines:
+{instructions}
+
+General Texting Rules:
 1. Stay in character as the partner. Write from their perspective.
-2. Keep your replies CASUAL, natural, and extremely SHORT (1 short sentence or phrase, under 10 words). Write like a real person texting.
-3. Standard English ONLY. Absolutely no Hindi or Hinglish.
-4. Output ONLY the raw reply text — no JSON, no dicts, no lists, no meta-commentary.
-
-Personality & Humor:
-- You are witty, playful, and confident. You do NOT reply in boring, flat, or generic ways.
-- Naturally rotate through these techniques depending on the moment:
-
-HUMOR TECHNIQUES (pick the best fit naturally):
-- Deadpan: Say something ridiculous in a completely flat, serious tone.
-- Situational Escalation: Exaggerate the stakes of something trivial.
-- Amplification: Build on what they said and push it further.
-- Pivot to the Bleak: Suddenly make a light topic unexpectedly dark.
-- Misdirection: Lead toward an expected response then swerve.
-- Callback: Reference something from earlier in the conversation.
-- Understatement: Describe something big as if it's completely minor.
-- Hyperbole: Massively overstate something for comic effect.
-- Intentional Misinterpretation: Deliberately "misread" what they said in a playful way.
-- Self-Deprecation: Light joke at your own expense, self-aware without being pathetic.
-- Anti-Humor: Set up for a joke, then deliver the literal boring answer.
-- Cold Reading: Act like you can see right through them.
-- Playful Accusation: Accuse them of something fun or absurd based on context.
-- Ribbing: Friendly teasing about a specific detail from their message.
-
-PLAYFUL BANTER (when the conversation has spark or flirtation):
-- Push and Pull: Compliment then immediately take it back or challenge them.
-- Role Reversal: Flip the dynamic so they seem like they're chasing you.
-- Mock Argument: Pick a pretend fight about something completely silly.
-- Feigned Arrogance: Act overly confident about something trivial.
-- Playful Disqualification: Pretend to "reject" them over something meaningless.
-- Bait and Switch: Set up something sincere then land with something unexpected.
-- Spontaneous Nicknaming: Give them a funny nickname based on something in the chat.
+2. Standard English ONLY. Absolutely no Hindi or Hinglish.
+3. Output ONLY the raw reply text — no quotes, no markdown, no JSON, no meta-commentary.
 """
+
+PARTNER_ROLEPLAY_SYSTEM_PROMPT = get_partner_system_prompt("normal")
 
 def clean_json_response(content) -> Dict:
     """Extract and parse JSON from LLM response, removing markdown code blocks if present."""
@@ -100,7 +129,7 @@ def clean_json_response(content) -> Dict:
             "first_message": "Hey! What's up?"
         }
 
-def get_llm(json_mode: bool = False, api_key: Optional[str] = None, model_name: Optional[str] = None) -> ChatGoogleGenerativeAI:
+def get_llm(json_mode: bool = False, api_key: Optional[str] = None, model_name: Optional[str] = None, temperature: Optional[float] = None) -> Any:
     key = api_key or os.getenv("GEMINI_API_KEY")
     if not key:
         raise ValueError("Gemini API Key is missing. Please set GEMINI_API_KEY in your environment/settings.")
@@ -119,12 +148,15 @@ def get_llm(json_mode: bool = False, api_key: Optional[str] = None, model_name: 
     kwargs = {
         "model": model,
         "safety_settings": safety_settings,
-        "temperature": 0.7,
+        "temperature": 0.7 if temperature is None else temperature,
     }
     if json_mode:
         kwargs["response_mime_type"] = "application/json"
     
-    return ChatGoogleGenerativeAI(google_api_key=key, **kwargs)
+    llm = ChatGoogleGenerativeAI(google_api_key=key, **kwargs)
+    # Explicitly disable automatic function calling (AFC) to prevent SDK warning
+    # and eliminate unnecessary function-calling overhead on generate_content
+    return llm.bind(automatic_function_calling={"disable": True})
 
 # Formats a flat history list of Dicts into LangChain message types
 def format_chat_history_messages(history: List[Dict]) -> List:
@@ -152,14 +184,27 @@ def extract_text_content(content) -> str:
 
 from src.usage_tracker import record_user_usage, extract_tokens_from_llm_response
 
-def generate_scenario(context: str, model_name: Optional[str] = None, user_id: Optional[str] = None) -> Dict:
+def generate_scenario(
+    context: str,
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None,
+    partner_persona: Optional[str] = "normal"
+) -> Dict:
     llm = get_llm(json_mode=True, model_name=model_name)
-    
+    p = (partner_persona or "normal").strip().lower()
+    if p in ["intermediate", "medium", "playful"]:
+        persona_note = "The partner has a playful, intermediate banter personality."
+    elif p in ["extraordinary", "advanced", "witty", "expert"]:
+        persona_note = "The partner is an extraordinary, high-banter, quick-witted sparring partner."
+    else:
+        persona_note = "The partner is a normal, everyday authentic match."
+
     prompt = f"""Design a texting roleplay scenario under this context: "{context}".
+Partner Persona: {persona_note}
 You must return a valid JSON object matching this schema:
 {{
   "scenario": "A 1-2 sentence description of who the partner is, where you are texting (e.g. WhatsApp, Tinder, Hinge), and the starting scenario vibe.",
-  "first_message": "The partner's starting text message. Keep it casual, short, under 6-10 words, and texting-friendly."
+  "first_message": "The partner's starting text message. Keep it casual, short, under 6-10 words, and texting-friendly matching the persona."
 }}
 """
     response = llm.invoke(prompt)
@@ -174,12 +219,16 @@ def generate_next_reply(
     scenario: str,
     history: List[Dict],
     model_name: Optional[str] = None,
-    user_id: Optional[str] = None
+    user_id: Optional[str] = None,
+    partner_persona: Optional[str] = "normal"
 ) -> str:
-    llm = get_llm(model_name=model_name)
+    p = (partner_persona or "normal").strip().lower()
+    temp = 0.2 if p in ["normal", "default"] or p not in ["intermediate", "medium", "playful", "extraordinary", "advanced", "witty", "expert"] else 0.7
+    llm = get_llm(model_name=model_name, temperature=temp)
     
+    system_prompt = get_partner_system_prompt(partner_persona)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", PARTNER_ROLEPLAY_SYSTEM_PROMPT),
+        ("system", system_prompt),
         ("placeholder", "{chat_history}")
     ])
     
@@ -363,15 +412,34 @@ You must return a valid JSON object matching this schema:
 
 Do not include any markdown format blocks, just return raw JSON."""
 
+def get_initiate_system_prompt(persona: Optional[str] = "normal") -> str:
+    p = (persona or "normal").strip().lower()
+    if p in ["intermediate", "medium", "playful"]:
+        reply_guide = "Draft the casual, extremely short texting reply (under 6-10 words) from the partner in standard English ONLY. Make it playful, engaging, with a fun spark."
+        vibe_guide = "The partner has a playful, intermediate banter vibe."
+    elif p in ["extraordinary", "advanced", "witty", "expert"]:
+        reply_guide = "Draft the casual, extremely short texting reply (under 6-10 words) from the partner in standard English ONLY. Make it sharp, witty, and playful, challenging the user with high banter."
+        vibe_guide = "The partner is an extraordinary, quick-witted sparring partner."
+    else:
+        reply_guide = "Draft the casual, extremely short texting reply (under 6-10 words) from the partner in standard English ONLY (no Hindi or Hinglish). Make it sound like a normal, authentic, everyday person responding naturally (friendly and casual, NOT overly witty, sarcastic, or trying to be a comedian)."
+        vibe_guide = "The partner is a normal, everyday authentic match."
+
+    return INITIATE_SYSTEM_PROMPT.replace(
+        "Draft the casual, extremely short texting reply (under 6-10 words) from the partner in standard English ONLY (no Hindi or Hinglish).",
+        reply_guide
+    )
+
 def initiate_chat_scenario(
     user_first_input: str,
     model_name: Optional[str] = None,
-    user_id: Optional[str] = None
+    user_id: Optional[str] = None,
+    partner_persona: Optional[str] = "normal"
 ) -> Dict:
     llm = get_llm(json_mode=True, model_name=model_name)
     
+    system_prompt = get_initiate_system_prompt(partner_persona)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", INITIATE_SYSTEM_PROMPT),
+        ("system", system_prompt),
         ("human", "User first input: \"{user_first_input}\"")
     ])
     

@@ -1,0 +1,36 @@
+.gcloudignore
+.git
+.gitignore
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# Android project (huge, not needed for backend)
+android/
+
+# Docs, media, screenshots, and demo videos
+docs/
+*.mp4
+*.jpeg
+*.jpg
+*.png
+
+# Local SQLite databases and temp files
+usage.db
+*.db
+*.sqlite3
+
+# OS files
+.DS_Store
+.vscode/
+.idea/

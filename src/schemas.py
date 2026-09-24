@@ -8,6 +8,13 @@ class MessageModel(BaseModel):
 
 class StartChatRequest(BaseModel):
     context: str
+    partner_persona: Optional[str] = None
+    persona_type: Optional[str] = None
+    persona: Optional[str] = None
+    mode: Optional[str] = None
+
+    class Config:
+        extra = "allow"
 
 class StartChatResponse(BaseModel):
     scenario: str
@@ -18,9 +25,17 @@ class SendMessageRequest(BaseModel):
     scenario: str
     chat_history: List[MessageModel]
     message: str
+    partner_persona: Optional[str] = None
+    persona_type: Optional[str] = None
+    persona: Optional[str] = None
+    mode: Optional[str] = None
+
+    class Config:
+        extra = "allow"
 
 class SendMessageResponse(BaseModel):
     reply: str
+    persona_type: Optional[str] = None
 
 class ConfigRequest(BaseModel):
     model_name: Optional[str] = "gemini-2.5-flash"
@@ -48,6 +63,13 @@ class VibeReviewResponse(BaseModel):
 
 class InitiateChatRequest(BaseModel):
     user_first_input: str
+    partner_persona: Optional[str] = None
+    persona_type: Optional[str] = None
+    persona: Optional[str] = None
+    mode: Optional[str] = None
+
+    class Config:
+        extra = "allow"
 
 class InitiateChatResponse(BaseModel):
     context: str
