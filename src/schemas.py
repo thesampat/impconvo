@@ -104,6 +104,11 @@ class MisinterpretResponse(BaseModel):
 class BanterRequest(BaseModel):
     topic: Optional[str] = None
     num_turns: Optional[int] = 8
+    persona_a_name: Optional[str] = "Alex"
+    persona_a_style: Optional[str] = None
+    persona_b_name: Optional[str] = "Jordan"
+    persona_b_style: Optional[str] = None
+    chat_history: Optional[List[MessageModel]] = None
 
 class BanterExchange(BaseModel):
     speaker: str

@@ -336,12 +336,22 @@ def api_banter(req: BanterRequest, request: Request):
     try:
         model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
         user_id = getattr(request.state, "user_id", None)
+        history_dicts = None
+        if req.chat_history:
+            history_dicts = [{"sender": m.sender, "body": m.body} for m in req.chat_history]
+
         result = generate_banter_agent(
             topic=req.topic,
             num_turns=req.num_turns or 8,
+            persona_a_name=req.persona_a_name,
+            persona_a_style=req.persona_a_style,
+            persona_b_name=req.persona_b_name,
+            persona_b_style=req.persona_b_style,
+            chat_history=history_dicts,
             model_name=model_name,
             user_id=user_id
         )
+
         exchanges = [
             BanterExchange(speaker=ex.get("speaker", ""), text=ex.get("text", ""))
             for ex in result.get("exchanges", [])
