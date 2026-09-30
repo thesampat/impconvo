@@ -3,32 +3,8 @@ import json
 import random
 from typing import List, Dict, Optional
 from langchain_core.messages import HumanMessage
-from src.agent import get_llm, clean_json_response
+from src.agent import get_llm, clean_json_response, extract_text_content
 
-# The two personas battling each other
-PERSONAS = [
-    {
-        "name": "Alex",
-        "style": "cocky, witty, and a little too confident. Loves teasing with self-assurance."
-    },
-    {
-        "name": "Jordan",
-        "style": "sarcastic, clever, and dry-humored. Never lets Alex get away with anything."
-    }
-]
-
-TOPICS = [
-    "who makes better coffee",
-    "who is harder to get",
-    "who takes longer to reply and why",
-    "who is actually funnier",
-    "who is more mysterious",
-    "who texts first and what that means",
-    "who has the better music taste",
-    "who would survive a zombie apocalypse longer",
-    "who is a better cook",
-    "who dresses better",
-]
 
 BANTER_SYSTEM_PROMPT = """You are writing a fun, short banter script between two people: {name_a} and {name_b}.
 
@@ -71,14 +47,17 @@ def generate_banter_agent(
     model_name: Optional[str] = None,
     user_id: Optional[str] = None
 ) -> Dict:
-    # Pick a random topic if none provided
-    if not topic:
-        topic = random.choice(TOPICS)
+    # If no topic provided, use Gemini to dynamically generate a witty debate topic
+    if not topic or not str(topic).strip():
+        topic_llm = get_llm(model_name=model_name, temperature=0.9)
+        topic_res = topic_llm.invoke("Give a single short playful debate or argument topic for two witty texting friends (e.g. who makes worse coffee). Output ONLY the topic, under 8 words, no quotes.")
+        topic = extract_text_content(topic_res.content).strip().strip('"').strip("'")
 
     name_a = (persona_a_name or "Alex").strip()
     name_b = (persona_b_name or "Jordan").strip()
-    style_a = (persona_a_style or PERSONAS[0]["style"]).strip()
-    style_b = (persona_b_style or PERSONAS[1]["style"]).strip()
+    style_a = (persona_a_style or "cocky, witty, and a little too confident. Loves teasing with self-assurance.").strip()
+    style_b = (persona_b_style or "sarcastic, clever, and dry-humored. Never lets Alex get away with anything.").strip()
+
 
     history_context = ""
     next_speaker = name_a
@@ -137,19 +116,12 @@ No markdown formatting. Raw JSON only."""
         result["persona_b"] = name_b
         if "exchanges" not in result or not isinstance(result["exchanges"], list):
             result["exchanges"] = []
+        if not result["exchanges"]:
+            raise ValueError("AI generated empty banter exchanges.")
         return result
     except Exception as e:
         print(f"Error generating banter: {e}", flush=True)
-        return {
-            "topic": topic,
-            "persona_a": name_a,
-            "persona_b": name_b,
-            "exchanges": [
-                {"speaker": name_a, "text": f"So we're really doing this debate about {topic}?"},
-                {"speaker": name_b, "text": "Only because I know I'm going to win in two seconds."},
-                {"speaker": name_a, "text": "Keep dreaming. You haven't won an argument since 2018."},
-                {"speaker": name_b, "text": "That's because you weren't smart enough to notice I won."}
-            ]
-        }
+        raise RuntimeError(f"AI Banter generation failed: {e}")
+
 
 

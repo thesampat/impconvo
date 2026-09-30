@@ -3,7 +3,7 @@ import json
 import re
 from typing import List, Dict, Optional
 from langchain_core.messages import HumanMessage
-from src.agent import get_llm, clean_json_response
+from src.agent import get_llm, clean_json_response, extract_text_content
 
 MISINTERPRET_SYSTEM_PROMPT = """You are a master texting coach specialized in playful banter and flirting.
 Your task is to take a partner's message and generate 3 creative, witty, or flirty "deliberate misinterpretations".
@@ -46,26 +46,6 @@ You must return a valid JSON object matching this schema:
 
 Do not include any markdown format blocks, just output raw JSON."""
 
-import random
-
-RANDOM_PARTNER_TEXTS = [
-    "I'm going to the gym now.",
-    "I just got some sushi.",
-    "I had a really busy day today, barely had time to eat.",
-    "I'm going to bed early tonight, so tired.",
-    "My phone was on silent, sorry!",
-    "I'm hanging out with my friends right now.",
-    "I don't really like coffee.",
-    "I'm watching a horror movie.",
-    "I just got a new puppy!",
-    "I'm stuck in traffic, going to be late.",
-    "I think I lost my keys.",
-    "I'm reading a really good mystery novel.",
-    "I hate cold weather.",
-    "I have to work this weekend.",
-    "I just finished a 5k run."
-]
-
 from src.usage_tracker import record_user_usage, extract_tokens_from_llm_response
 
 def generate_misinterpretations_agent(
@@ -73,10 +53,12 @@ def generate_misinterpretations_agent(
     model_name: Optional[str] = None,
     user_id: Optional[str] = None
 ) -> Dict:
-    # If empty or says 'random', choose a random texting line from our collection
+    # If empty or says 'random', dynamically ask Gemini for a realistic incoming text
     cleaned_input = partner_text.strip().lower() if partner_text else ""
     if not cleaned_input or cleaned_input == "random":
-        partner_text = random.choice(RANDOM_PARTNER_TEXTS)
+        gen_llm = get_llm(model_name=model_name, temperature=0.9)
+        res = gen_llm.invoke("Give a single short realistic incoming text message from a dating app match or friend (under 8 words, e.g. 'I'm going to the gym now'). Output ONLY the text message, no quotes, no explanation.")
+        partner_text = extract_text_content(res.content).strip().strip('"').strip("'")
         
     llm = get_llm(json_mode=True, model_name=model_name)
     
