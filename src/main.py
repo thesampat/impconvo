@@ -20,8 +20,8 @@ os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Import modular schemas, agent logic, and usage tracker
-from src.schemas import StartChatRequest, StartChatResponse, SendMessageRequest, SendMessageResponse, ConfigRequest, ImproveMessageRequest, VibeReviewRequest, VibeReviewResponse, VibeReviewItem, InitiateChatRequest, InitiateChatResponse, GetOpenersRequest, GetOpenersResponse, OpenerItem, MisinterpretRequest, MisinterpretResponse, MisinterpretItem, BanterRequest, BanterResponse, BanterExchange
-from src.agent import generate_scenario, generate_next_reply, generate_improved_options, generate_vibe_review, initiate_chat_scenario
+from src.schemas import StartChatRequest, StartChatResponse, SendMessageRequest, SendMessageResponse, ConfigRequest, ImproveMessageRequest, VibeReviewRequest, VibeReviewResponse, VibeReviewItem, InitiateChatRequest, InitiateChatResponse, GetOpenersRequest, GetOpenersResponse, OpenerItem, MisinterpretRequest, MisinterpretResponse, MisinterpretItem, BanterRequest, BanterResponse, BanterExchange, GenerateScenarioRequest, GenerateScenarioResponse
+from src.agent import generate_scenario, generate_next_reply, generate_improved_options, generate_vibe_review, initiate_chat_scenario, generate_random_scenario
 from src.agent_get_opener import generate_openers_agent
 from src.agent_misinterpret import generate_misinterpretations_agent
 from src.usage_tracker import is_user_within_quota, get_user_usage
@@ -249,29 +249,29 @@ def api_initiate_chat(req: InitiateChatRequest, request: Request):
         logger.error(f"[/api/initiate-chat] error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/generate-scenario")
-@app.post("/api/generate-scenario/")
-@app.get("/api/generate-scenario")
-@app.get("/api/generate-scenario/")
+@app.post("/api/generate-scenario", response_model=GenerateScenarioResponse)
+@app.post("/api/generate-scenario/", response_model=GenerateScenarioResponse)
+@app.get("/api/generate-scenario", response_model=GenerateScenarioResponse)
+@app.get("/api/generate-scenario/", response_model=GenerateScenarioResponse)
 async def api_generate_scenario(request: Request):
     try:
         body = await request.json() if request.method == "POST" else {}
     except Exception:
         body = {}
-    prev = body.get("previous_scenario")
-    import random
-    fallbacks = [
-        "Matched with a girl on Hinge who said 'Worst roommate horror story gets a drink'. Hey, does a roommate who microwaved fish at 3 AM qualify for that drink?",
-        "Met someone at a concert after losing our friends in the crowd. Hey, did you ever find your friends or are you still wandering near the sound booth?",
-        "Texting someone I met at a board game cafe who was surprisingly competitive at Catan. Hey, I'm ready to forgive you for stealing my longest road, but barely.",
-        "Matched on Bumble with someone whose profile prompt is 'Change my mind: Star Wars > Lord of the Rings'. Hey, prepare yourself because I have a 5-point rebuttal ready.",
-        "Met someone at an airport terminal waiting for a 3-hour delayed flight. Hey, did your flight ever take off or did you end up adopting the airport as your home?",
-        "Talking to a girl from my run club who outpaced everyone including the coach. Hey, give me a 5-minute head start next Tuesday or I'm bringing rollerblades.",
-        "Matched on Tinder with someone holding a microphone at a comedy open mic. Hey, what's worse: bombing on stage or receiving bad Tinder pickup lines?",
-        "Exchanged numbers after arguing over who ordered the last almond croissant at a bakery. Hey, that croissant was life-changing—I forgive you for trying to steal it."
-    ]
-    candidates = [s for s in fallbacks if s != prev]
-    return {"scenario": random.choice(candidates) if candidates else random.choice(fallbacks)}
+    
+    category = body.get("category") or request.query_params.get("category")
+    prev = body.get("previous_scenario") or request.query_params.get("previous_scenario")
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+    user_id = getattr(request.state, "user_id", None)
+    
+    scenario_text = generate_random_scenario(
+        category=category,
+        previous_scenario=prev,
+        model_name=model_name,
+        user_id=user_id
+    )
+    return GenerateScenarioResponse(scenario=scenario_text)
+
 
 @app.get("/openers")
 def get_openers_page():

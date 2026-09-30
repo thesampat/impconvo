@@ -453,6 +453,63 @@ def initiate_chat_scenario(
         
     return clean_json_response(response.content)
 
+FALLBACK_SCENARIOS = [
+    "Matched with a girl on Hinge who said 'Worst roommate horror story gets a drink'. Hey, does a roommate who microwaved fish at 3 AM qualify for that drink?",
+    "Met someone at a concert after losing our friends in the crowd. Hey, did you ever find your friends or are you still wandering near the sound booth?",
+    "Texting someone I met at a board game cafe who was surprisingly competitive at Catan. Hey, I'm ready to forgive you for stealing my longest road, but barely.",
+    "Matched on Bumble with someone whose profile prompt is 'Change my mind: Star Wars > Lord of the Rings'. Hey, prepare yourself because I have a 5-point rebuttal ready.",
+    "Met someone at an airport terminal waiting for a 3-hour delayed flight. Hey, did your flight ever take off or did you end up adopting the airport as your home?",
+    "Talking to a girl from my run club who outpaced everyone including the coach. Hey, give me a 5-minute head start next Tuesday or I'm bringing rollerblades.",
+    "Matched on Tinder with someone holding a microphone at a comedy open mic. Hey, what's worse: bombing on stage or receiving bad Tinder pickup lines?",
+    "Exchanged numbers after arguing over who ordered the last almond croissant at a bakery. Hey, that croissant was life-changing—I forgive you for trying to steal it."
+]
 
+def generate_random_scenario(
+    category: Optional[str] = None,
+    previous_scenario: Optional[str] = None,
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
+) -> str:
+    prompt_theme = f"Category or vibe focus: {category}." if category else "Pick a random, realistic, and highly engaging dating or social texting scenario."
+    avoid_instruction = f'CRITICAL RULE: Make it completely different in setting, vibe, characters, and topic from this previous scenario: "{previous_scenario}". Ensure it is distinct and unique.' if previous_scenario else ""
 
+    system_prompt = f"""You are an expert texting and social coach.
+Generate a single, realistic, and highly relatable scenario starter for someone to practice texting.
 
+The starter MUST follow this exact format:
+"<Context description (who they are, where you met, what happened)>. <Initial text message to send>"
+
+Examples:
+- "Matched with a girl on Hinge who claimed she makes the best pasta in town. Hey, bold claim about the pasta—are we talking Michelin star or just excessive garlic?"
+- "Met someone at a coffee shop after we accidentally grabbed the same iced latte. Hey, I hope that caffeine kicked in or else you took my oat milk for nothing."
+- "Exchanged numbers with a classmate after bonding over how brutal the midterm was. Hey, did you survive that exam or are we both dropping out together?"
+
+Guidelines:
+- Keep it under 35 words total.
+- Natural, witty, texting-friendly tone in standard English ONLY (zero Hindi or Hinglish).
+- Output ONLY the plain text starter line. No quotes, no JSON, no markdown formatting.
+
+{prompt_theme}
+{avoid_instruction}
+Generate a brand new scenario starter now."""
+
+    try:
+        llm = get_llm(model_name=model_name, temperature=0.9)
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            ("human", "Generate a new scenario starter.")
+        ])
+        chain = prompt | llm
+        response = chain.invoke({})
+        result = extract_text_content(response.content).strip().strip('"').strip("'")
+        if user_id:
+            tokens = extract_tokens_from_llm_response(response, fallback_text=system_prompt)
+            record_user_usage(user_id, tokens)
+        if result and len(result) > 10:
+            return result
+    except Exception as e:
+        print(f"LLM generate_random_scenario fallback due to: {e}", flush=True)
+
+    import random
+    candidates = [s for s in FALLBACK_SCENARIOS if s != previous_scenario]
+    return random.choice(candidates) if candidates else random.choice(FALLBACK_SCENARIOS)

@@ -115,8 +115,9 @@ class BanterResponse(BaseModel):
     persona_b: str
     exchanges: List[BanterExchange]
 
+class GenerateScenarioRequest(BaseModel):
+    category: Optional[str] = None
+    previous_scenario: Optional[str] = None
 
-
-
-
-
+class GenerateScenarioResponse(BaseModel):
+    scenario: str
