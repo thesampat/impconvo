@@ -123,6 +123,11 @@ def clean_json_response(content) -> Dict:
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
+        # Fallback response
+        return {
+            "scenario": f"Let's chat under this context: {content[:100]}",
+            "first_message": "Hey! What's up?"
+        }
         json_match = re.search(r'(\{.*\}|\[.*\])', json_str, re.DOTALL)
         if json_match:
             try:
@@ -455,6 +460,17 @@ def initiate_chat_scenario(
         
     return clean_json_response(response.content)
 
+FALLBACK_SCENARIOS = [
+    "Matched with a girl on Hinge who said 'Worst roommate horror story gets a drink'. Hey, does a roommate who microwaved fish at 3 AM qualify for that drink?",
+    "Met someone at a concert after losing our friends in the crowd. Hey, did you ever find your friends or are you still wandering near the sound booth?",
+    "Texting someone I met at a board game cafe who was surprisingly competitive at Catan. Hey, I'm ready to forgive you for stealing my longest road, but barely.",
+    "Matched on Bumble with someone whose profile prompt is 'Change my mind: Star Wars > Lord of the Rings'. Hey, prepare yourself because I have a 5-point rebuttal ready.",
+    "Met someone at an airport terminal waiting for a 3-hour delayed flight. Hey, did your flight ever take off or did you end up adopting the airport as your home?",
+    "Talking to a girl from my run club who outpaced everyone including the coach. Hey, give me a 5-minute head start next Tuesday or I'm bringing rollerblades.",
+    "Matched on Tinder with someone holding a microphone at a comedy open mic. Hey, what's worse: bombing on stage or receiving bad Tinder pickup lines?",
+    "Exchanged numbers after arguing over who ordered the last almond croissant at a bakery. Hey, that croissant was life-changing—I forgive you for trying to steal it."
+]
+
 def generate_random_scenario(
     category: Optional[str] = None,
     previous_scenario: Optional[str] = None,
@@ -500,6 +516,10 @@ Generate a brand new scenario starter now."""
             return result
         raise ValueError("Model generated empty or too short scenario.")
     except Exception as e:
+        print(f"LLM generate_random_scenario fallback due to: {e}", flush=True)
         logger.error(f"AI generate_random_scenario error: {e}")
         raise RuntimeError(f"AI scenario generation failed: {e}")
 
+    import random
+    candidates = [s for s in FALLBACK_SCENARIOS if s != previous_scenario]
+    return random.choice(candidates) if candidates else random.choice(FALLBACK_SCENARIOS)
