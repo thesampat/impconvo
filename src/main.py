@@ -24,6 +24,7 @@ from src.schemas import StartChatRequest, StartChatResponse, SendMessageRequest,
 from src.agent import generate_scenario, generate_next_reply, generate_improved_options, generate_vibe_review, initiate_chat_scenario, generate_random_scenario
 from src.agent_get_opener import generate_openers_agent
 from src.agent_misinterpret import generate_misinterpretations_agent
+from src.agent_banter import generate_banter_agent
 from src.usage_tracker import is_user_within_quota, get_user_usage
 import logging
 
