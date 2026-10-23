@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   FlatList,
   type ListRenderItem,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import MessageActions from './banter/MessageActions';
 import KeyboardAware, { useKeyboardShown } from '../components/KeyboardAware';
 import type { ConversationSetting, ConversationStarter } from '../api/types';
 import { makeStyles, radius, spacing, useColors } from '../theme';
@@ -255,6 +257,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   const listRef = useRef<FlatList<FeedItem>>(null);
   const insets = useSafeAreaInsets();
   const keyboardShown = useKeyboardShown();
+  const inputAtTop = isTypingMode && keyboardShown;
   const coach = useCoachTools({
     scenario: banter.topic,
     setting: banter.setting,
@@ -264,8 +267,22 @@ function ActiveSession({ banter }: { banter: Banter }) {
     messages,
   });
 
+  // Tapping one of your sent lines opens a menu to edit it or get better versions of it
+  const [actionFor, setActionFor] = useState<FeedItem | null>(null);
+  // While set, sending replaces that message (and redoes the replies after it)
+  const [editingId, setEditingId] = useState<number | null>(null);
+  // The sent message the open suggestions are for, if any
+  const [improvingId, setImprovingId] = useState<number | null>(null);
+
   const send = () => {
-    banter.sendMyMessage(draft);
+    if (editingId !== null) banter.replaceMyMessage(editingId, draft);
+    else banter.sendMyMessage(draft);
+    setDraft('');
+    setEditingId(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
     setDraft('');
   };
 
@@ -284,9 +301,20 @@ function ActiveSession({ banter }: { banter: Banter }) {
       item.speaker === SYSTEM_ERROR_SPEAKER ? (
         <SystemErrorBubble text={item.text} />
       ) : (
-        <BanterChatBubble speaker={item.speaker} text={item.text} isMine={!sameName(item.speaker, personaB)} />
+        (() => {
+          const isMine = !sameName(item.speaker, personaB);
+          const bubble = <BanterChatBubble speaker={item.speaker} text={item.text} isMine={isMine} />;
+          // Only lines the user typed can be edited or improved
+          return isTypingMode && isMine ? (
+            <Pressable onPress={() => setActionFor(item)} accessibilityRole="button" accessibilityHint="Edit or improve this message">
+              {bubble}
+            </Pressable>
+          ) : (
+            bubble
+          );
+        })()
       ),
-    [personaB],
+    [isTypingMode, personaB],
   );
 
   const footer = (
@@ -360,37 +388,47 @@ function ActiveSession({ banter }: { banter: Banter }) {
         )}
       </View>
 
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={renderItem}
-        ListFooterComponent={footer}
-        ListFooterComponentStyle={styles.footer}
-        contentContainerStyle={styles.feed}
-        style={styles.flex}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
-      />
+      {/* While the keyboard is up the input moves under the header, where no keyboard can cover it.
+          Reversing the column (instead of moving the input in the tree) keeps the same TextInput,
+          so it keeps focus and the keyboard stays open. */}
+      <View style={[styles.flex, inputAtTop && styles.reversed]}>
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderItem}
+          ListFooterComponent={footer}
+          ListFooterComponentStyle={styles.footer}
+          contentContainerStyle={styles.feed}
+          style={styles.flex}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+        />
 
-      {isTypingMode ? (
-        <Composer
-          value={draft}
-          onChangeText={setDraft}
-          onSend={send}
-          onSuggest={() => coach.openSuggestions(draft)}
-          isLoading={isLoading}
-          bottomInset={keyboardShown ? 0 : insets.bottom}
-        />
-      ) : (
-        <PlaybackControls
-          isPlaying={isPlaying}
-          isLoading={isLoading}
-          queueSize={banter.queueSize}
-          onTogglePlay={banter.togglePlayPause}
-          onNext={banter.skipNext}
-          onContinue={banter.continueBanter}
-        />
-      )}
+        {isTypingMode ? (
+          <Composer
+            value={draft}
+            onChangeText={setDraft}
+            onSend={send}
+            onSuggest={() => {
+              setImprovingId(null);
+              coach.openSuggestions(draft, editingId ?? undefined);
+            }}
+            isLoading={isLoading}
+            bottomInset={keyboardShown ? 0 : insets.bottom}
+            atTop={inputAtTop}
+            onCancelEdit={editingId !== null ? cancelEdit : undefined}
+          />
+        ) : (
+          <PlaybackControls
+            isPlaying={isPlaying}
+            isLoading={isLoading}
+            queueSize={banter.queueSize}
+            onTogglePlay={banter.togglePlayPause}
+            onNext={banter.skipNext}
+            onContinue={banter.continueBanter}
+          />
+        )}
+      </View>
 
       <SuggestionsDialog
         visible={coach.suggestionsVisible}
@@ -399,6 +437,9 @@ function ActiveSession({ banter }: { banter: Banter }) {
         error={coach.suggestionsError}
         onSelect={(text) => {
           setDraft(text);
+          // Picked a better version of a sent line: sending it replaces that line
+          if (improvingId !== null) setEditingId(improvingId);
+          setImprovingId(null);
           coach.closeSuggestions();
         }}
         onRegenerate={coach.regenerateSuggestions}
@@ -410,6 +451,27 @@ function ActiveSession({ banter }: { banter: Banter }) {
         error={coach.reviewError}
         report={coach.report}
         onClose={coach.closeReview}
+      />
+
+      <MessageActions
+        text={actionFor?.text ?? null}
+        onClose={() => setActionFor(null)}
+        onEdit={() => {
+          if (!actionFor) return;
+          setDraft(actionFor.text);
+          setEditingId(actionFor.id);
+          setActionFor(null);
+        }}
+        onImprove={() => {
+          if (!actionFor) return;
+          const { id, text } = actionFor;
+          setImprovingId(id);
+          setActionFor(null);
+          // iOS can't present the suggestions Modal while this menu's Modal is still closing
+          const open = () => coach.openSuggestions(text, id);
+          if (Platform.OS === 'ios') setTimeout(open, 350);
+          else open();
+        }}
       />
 
       <ResetDialog
@@ -431,6 +493,7 @@ const hairline = StyleSheet.hairlineWidth;
 const useStyles = makeStyles((c, t) => ({
   root: { flex: 1, backgroundColor: c.background },
   flex: { flex: 1 },
+  reversed: { flexDirection: 'column-reverse' },
   pressed: { opacity: 0.7 },
 
   // Setup

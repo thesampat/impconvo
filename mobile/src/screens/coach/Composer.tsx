@@ -11,9 +11,13 @@ interface Props {
   onSuggest: () => void;
   isLoading: boolean;
   bottomInset: number;
+  /** Rendered under the header (while typing) instead of at the bottom */
+  atTop?: boolean;
+  /** Set while the draft will replace an already-sent message */
+  onCancelEdit?: () => void;
 }
 
-export default function Composer({ value, onChangeText, onSend, onSuggest, isLoading, bottomInset }: Props) {
+export default function Composer({ value, onChangeText, onSend, onSuggest, isLoading, bottomInset, atTop, onCancelEdit }: Props) {
   const styles = useStyles();
   const c = useColors();
   const hasText = value.trim().length > 0;
@@ -25,7 +29,15 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
   const onInputPress = useDoubleTap(suggestIfText);
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: spacing.md + bottomInset }]}>
+    <View style={[styles.wrapper, atTop && styles.wrapperTop, { paddingBottom: (atTop ? spacing.sm : spacing.md) + bottomInset }]}>
+      {onCancelEdit ? (
+        <View style={styles.editBar}>
+          <Text style={styles.editText}>Editing your message · replies after it will be redone</Text>
+          <Pressable onPress={onCancelEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel editing">
+            <Text style={styles.editCancel}>Cancel</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={styles.capsule}>
         <Pressable
           onPress={onSuggest}
@@ -74,6 +86,14 @@ const useStyles = makeStyles((c, t) => ({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: c.divider,
     backgroundColor: c.background,
+  },
+  editBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+  editText: { flex: 1, color: c.accent, fontSize: 12 },
+  editCancel: { color: c.textSecondary, fontSize: 13, fontWeight: '500' },
+  wrapperTop: {
+    borderTopWidth: 0,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: c.divider,
   },
   // Flat row on the page background; only the text field keeps a hairline border
   capsule: {

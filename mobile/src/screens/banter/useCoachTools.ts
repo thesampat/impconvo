@@ -15,6 +15,13 @@ interface Options {
   messages: FeedItem[];
 }
 
+// The coaching endpoints expect the user's lines as "Me".
+function toHistory(messages: FeedItem[], personaA: string): MessageModel[] {
+  return messages
+    .filter((m) => m.speaker !== SYSTEM_ERROR_SPEAKER)
+    .map((m) => ({ sender: m.speaker === personaA ? 'Me' : 'Partner', body: m.text }));
+}
+
 function errorMessage(e: unknown, fallback: string): string {
   return e instanceof Error && e.message ? e.message : fallback;
 }
@@ -27,14 +34,7 @@ export function useCoachTools({ scenario, setting, personaA, personaB, otherPers
     [otherPersonality, personaA, personaB, setting],
   );
 
-  // The coaching endpoints expect the user's lines as "Me".
-  const history = useMemo<MessageModel[]>(
-    () =>
-      messages
-        .filter((m) => m.speaker !== SYSTEM_ERROR_SPEAKER)
-        .map((m) => ({ sender: m.speaker === personaA ? 'Me' : 'Partner', body: m.text })),
-    [messages, personaA],
-  );
+  const history = useMemo<MessageModel[]>(() => toHistory(messages, personaA), [messages, personaA]);
 
   // Suggestions
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
@@ -42,6 +42,8 @@ export function useCoachTools({ scenario, setting, personaA, personaB, otherPers
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
   const draftRef = useRef('');
+  // Set when improving an already-sent line: only the chat before it is context
+  const historyOverrideRef = useRef<MessageModel[] | null>(null);
   const suggestionsRequestRef = useRef(0);
 
   const fetchSuggestions = useCallback(async () => {
@@ -53,7 +55,7 @@ export function useCoachTools({ scenario, setting, personaA, personaB, otherPers
       const res = await api.improveMessage({
         context,
         scenario,
-        chat_history: history,
+        chat_history: historyOverrideRef.current ?? history,
         message_to_improve: draftRef.current || 'generate a response',
       });
       if (request !== suggestionsRequestRef.current) return;
@@ -68,12 +70,18 @@ export function useCoachTools({ scenario, setting, personaA, personaB, otherPers
   }, [context, history, scenario]);
 
   const openSuggestions = useCallback(
-    (draft: string) => {
+    (draft: string, beforeId?: number) => {
       draftRef.current = draft.trim();
+      if (beforeId === undefined) {
+        historyOverrideRef.current = null;
+      } else {
+        const cut = messages.findIndex((m) => m.id === beforeId);
+        historyOverrideRef.current = cut >= 0 ? toHistory(messages.slice(0, cut), personaA) : null;
+      }
       setSuggestionsVisible(true);
       fetchSuggestions();
     },
-    [fetchSuggestions],
+    [fetchSuggestions, messages, personaA],
   );
 
   const closeSuggestions = useCallback(() => {
