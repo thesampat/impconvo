@@ -5,15 +5,10 @@ import * as Clipboard from 'expo-clipboard';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
-import { PARTNER_PERSONAS, type ChatReportData } from './types';
+import type { ChatReportData } from './types';
 
 const RULE = '==========================================';
 const REPORT_TITLE = 'ChatElevate - Vibe Review Report';
-
-export function personaLabel(persona: ChatReportData['persona']): string {
-  const match = PARTNER_PERSONAS.find((p) => p.id === persona);
-  return match ? match.label : persona.charAt(0).toUpperCase() + persona.slice(1);
-}
 
 export function buildReportText(data: ChatReportData): string {
   const { scenario, persona, history, review } = data;
@@ -22,7 +17,7 @@ export function buildReportText(data: ChatReportData): string {
     '  CHAT ELEVATE - CHAT & VIBE REVIEW REPORT',
     RULE,
     `Scenario: ${scenario}`,
-    `Persona: ${personaLabel(persona)}`,
+    `Persona: ${persona}`,
     '',
     '--- CHAT TRANSCRIPT ---',
   ];
@@ -127,7 +122,7 @@ export function buildReportHtml(data: ChatReportData): string {
   <div class="accent"></div>
   <h2>Scenario Vibe</h2>
   <p>${e(scenario)}</p>
-  <p class="muted">Partner Persona: ${e(personaLabel(persona))}</p>
+  <p class="muted">Partner Persona: ${e(persona)}</p>
   <div class="score">
     <div class="ring">${e(String(review.score))}</div>
     <div>

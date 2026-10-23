@@ -1,18 +1,12 @@
-// Contract between the chat screen (ChatScreen.tsx) and its overlays
-// (SuggestionsDialog.tsx, VibeReviewSheet.tsx, report.ts).
-import type { MessageModel, PartnerPersona, VibeReviewResponse } from '../../api/types';
-
-export const PARTNER_PERSONAS: { id: PartnerPersona; label: string; short: string }[] = [
-  { id: 'normal', label: 'Normal (Dry)', short: 'Normal' },
-  { id: 'intermediate', label: 'Playful', short: 'Intermediate' },
-  { id: 'extraordinary', label: 'High Banter', short: 'Extraordinary' },
-];
+// Shared coaching overlays (SuggestionsDialog.tsx, VibeReviewSheet.tsx, report.ts).
+import type { MessageModel, VibeReviewResponse } from '../../api/types';
 
 // Everything the Vibe Review report (PDF / share / copy) needs.
 export interface ChatReportData {
   scenario: string;
   context: string;
-  persona: PartnerPersona;
+  // Shown in the report, e.g. "Maya · Dry & Reluctant"
+  persona: string;
   history: MessageModel[];
   review: VibeReviewResponse;
 }

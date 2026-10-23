@@ -18,12 +18,16 @@ export interface FeedItem extends BanterExchange {
 }
 
 export type SetupStep = 'scenario' | 'details';
+// 'ai': watch both sides; 'typing': the user types Person A's lines live
+export type MeMode = 'ai' | 'typing';
 
 export interface BotConfig {
   name: string;
   presetIndex: number;
   customStyle: string;
 }
+
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 function errorMessage(e: unknown, fallback: string): string {
   return e instanceof Error && e.message ? e.message : fallback;
@@ -37,6 +41,7 @@ export function useBanter() {
   const [setting, setSetting] = useState<ConversationSetting>('online');
   const [starter, setStarter] = useState<ConversationStarter>('me');
   const [setupStep, setSetupStep] = useState<SetupStep>('scenario');
+  const [meMode, setMeMode] = useState<MeMode>('ai');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [isGeneratingTopic, setIsGeneratingTopic] = useState(false);
@@ -180,6 +185,51 @@ export function useBanter() {
     setSetupStep('scenario');
   }, []);
 
+  // Typing mode: ask for just the other person's next line.
+  const fetchReply = useCallback(
+    async (session: number, nameA: string, nameB: string) => {
+      const history = messagesRef.current.filter((m) => m.speaker !== SYSTEM_ERROR_SPEAKER);
+      setLoading(true);
+      setTypingSpeaker(nameB);
+      setIsTyping(true);
+      try {
+        const res = await api.getBanter({
+          topic: topicInput.trim() || null,
+          num_turns: 1,
+          persona_a_name: nameA,
+          persona_a_style: getPersonaStyle(botA.presetIndex, botA.customStyle),
+          persona_b_name: nameB,
+          persona_b_style: getPersonaStyle(botB.presetIndex, botB.customStyle),
+          setting,
+          starter: history.length ? undefined : 'other',
+          chat_history: history.length ? history.map((m) => ({ sender: m.speaker, body: m.text })) : null,
+        });
+        if (session !== sessionRef.current) return;
+        const line = res.exchanges.find((e) => sameName(e.speaker, nameB)) ?? res.exchanges[0];
+        if (line) appendToFeed({ speaker: nameB, text: line.text });
+      } catch (e) {
+        if (session !== sessionRef.current) return;
+        appendToFeed({ speaker: SYSTEM_ERROR_SPEAKER, text: `Couldn't get ${nameB}'s reply: ${errorMessage(e, 'Unknown error')}` });
+      } finally {
+        if (session === sessionRef.current) {
+          setLoading(false);
+          setIsTyping(false);
+        }
+      }
+    },
+    [appendToFeed, botA, botB, setLoading, setting, topicInput],
+  );
+
+  const sendMyMessage = useCallback(
+    (text: string) => {
+      const body = text.trim();
+      if (!body || loadingRef.current) return;
+      appendToFeed({ speaker: personaA, text: body });
+      fetchReply(sessionRef.current, personaA, personaB);
+    },
+    [appendToFeed, fetchReply, personaA, personaB],
+  );
+
   const start = useCallback(async () => {
     const trimmedTopic = topicInput.trim();
     const nameA = botA.name.trim() || 'Alex';
@@ -194,6 +244,21 @@ export function useBanter() {
       setting,
       starter,
     };
+
+    if (meMode === 'typing') {
+      clearTimer();
+      const session = ++sessionRef.current;
+      setIsSessionActive(true);
+      setPlaying(false);
+      setIsTyping(false);
+      setFeed([]);
+      setQueue([]);
+      setTopic(trimmedTopic);
+      setPersonaA(nameA);
+      setPersonaB(nameB);
+      if (starter === 'other') await fetchReply(session, nameA, nameB);
+      return;
+    }
 
     clearTimer();
     const session = ++sessionRef.current;
@@ -229,7 +294,7 @@ export function useBanter() {
         },
       ]);
     }
-  }, [botA, botB, clearTimer, scheduleNext, setFeed, setLoading, setPlaying, setQueue, setting, starter, topicInput]);
+  }, [botA, botB, clearTimer, fetchReply, meMode, scheduleNext, setFeed, setLoading, setPlaying, setQueue, setting, starter, topicInput]);
 
   const togglePlayPause = useCallback(() => {
     if (playingRef.current) {
@@ -312,6 +377,8 @@ export function useBanter() {
     starter,
     setStarter,
     setupStep,
+    meMode,
+    setMeMode,
     isAnalyzing,
     analyzeError,
     analyzeScenario,
@@ -333,6 +400,7 @@ export function useBanter() {
     togglePlayPause,
     skipNext,
     continueBanter,
+    sendMyMessage,
     reset,
   };
 }

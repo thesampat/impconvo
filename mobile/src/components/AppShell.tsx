@@ -3,7 +3,6 @@ import { BackHandler, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BanterScreen from '../screens/BanterScreen';
-import ChatScreen from '../screens/ChatScreen';
 import MisinterpretScreen from '../screens/MisinterpretScreen';
 import OpenersScreen from '../screens/OpenersScreen';
 import { SCREENS, type ScreenId } from '../screens/types';
@@ -14,7 +13,6 @@ import SettingsDialog from './SettingsDialog';
 import TopBar from './TopBar';
 
 const SCREEN_COMPONENTS: Record<ScreenId, ComponentType> = {
-  chat: ChatScreen,
   openers: OpenersScreen,
   misinterpret: MisinterpretScreen,
   banter: BanterScreen,
@@ -23,18 +21,18 @@ const SCREEN_COMPONENTS: Record<ScreenId, ComponentType> = {
 export default function AppShell() {
   const insets = useSafeAreaInsets();
   const { isConnected, testConnection } = useSettings();
-  const [current, setCurrent] = useState<ScreenId>('chat');
+  const [current, setCurrent] = useState<ScreenId>('banter');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   // Opened only after the drawer Modal has fully closed (iOS can't present two Modals at once)
   const afterDrawerClose = useRef<(() => void) | null>(null);
 
-  // Hardware back on a secondary screen returns to chat; Modals handle their own back via onRequestClose
+  // Hardware back on a secondary screen returns to Watch & Learn; Modals handle their own back via onRequestClose
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (current !== 'chat') {
-        setCurrent('chat');
+      if (current !== 'banter') {
+        setCurrent('banter');
         return true;
       }
       return false;

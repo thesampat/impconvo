@@ -15,14 +15,20 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import type { ConversationSetting, ConversationStarter } from '../api/types';
 import { colors, gradients, radius } from '../theme';
 import { BanterChatBubble, BanterTypingBubble, SystemErrorBubble } from './banter/BanterBubble';
 import PersonaConfigCard from './banter/PersonaConfigCard';
 import PlaybackControls from './banter/PlaybackControls';
-import ResetDialog from './chat/ResetDialog';
-import { withAlpha } from './banter/presets';
-import { type FeedItem, SYSTEM_ERROR_SPEAKER, useBanter } from './banter/useBanter';
+import { BANTER_PRESETS, withAlpha } from './banter/presets';
+import { useCoachTools } from './banter/useCoachTools';
+import { type FeedItem, type MeMode, SYSTEM_ERROR_SPEAKER, useBanter } from './banter/useBanter';
+import Composer from './coach/Composer';
+import ResetDialog from './coach/ResetDialog';
+import SuggestionsDialog from './coach/SuggestionsDialog';
+import VibeReviewSheet from './coach/VibeReviewSheet';
 
 const sameName = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
@@ -41,6 +47,11 @@ type Banter = ReturnType<typeof useBanter>;
 const SETTING_OPTIONS: { id: ConversationSetting; label: string }[] = [
   { id: 'online', label: '💬 Online (texting)' },
   { id: 'in_person', label: '🗣️ In person' },
+];
+
+const ME_MODE_OPTIONS: { id: MeMode; label: string }[] = [
+  { id: 'ai', label: '🤖 AI (watch)' },
+  { id: 'typing', label: '⌨️ I type' },
 ];
 
 function SetupView({ banter }: { banter: Banter }) {
@@ -137,6 +148,9 @@ function DetailsStep({ banter }: { banter: Banter }) {
       <Text style={[styles.sectionLabel, styles.settingLabel]}>Who speaks first?</Text>
       <Segmented options={starterOptions} value={banter.starter} onChange={banter.setStarter} />
 
+      <Text style={[styles.sectionLabel, styles.settingLabel]}>Who plays you?</Text>
+      <Segmented options={ME_MODE_OPTIONS} value={banter.meMode} onChange={banter.setMeMode} />
+
       <View style={styles.cardGapSmall}>
         <PersonaConfigCard label="Person A · you" accentColor={colors.accentPurple} config={botA} onChange={banter.setBotA} />
       </View>
@@ -149,7 +163,11 @@ function DetailsStep({ banter }: { banter: Banter }) {
         />
       </View>
 
-      <GradientButton label="Start Conversation ▶" loading={isLoading} onPress={banter.start} />
+      <GradientButton
+        label={banter.meMode === 'typing' ? 'Start Chatting ▶' : 'Start Conversation ▶'}
+        loading={isLoading}
+        onPress={banter.start}
+      />
     </>
   );
 }
@@ -227,8 +245,24 @@ function GradientButton({
 
 function ActiveSession({ banter }: { banter: Banter }) {
   const { isLoading, isPlaying, isTyping, typingSpeaker, messages, personaA, personaB } = banter;
+  const isTypingMode = banter.meMode === 'typing';
   const [expanded, setExpanded] = useState(false);
+  const [draft, setDraft] = useState('');
   const listRef = useRef<FlatList<FeedItem>>(null);
+  const insets = useSafeAreaInsets();
+  const coach = useCoachTools({
+    scenario: banter.topic,
+    setting: banter.setting,
+    personaA,
+    personaB,
+    otherPersonality: BANTER_PRESETS[banter.botB.presetIndex]?.title ?? 'Custom',
+    messages,
+  });
+
+  const send = () => {
+    banter.sendMyMessage(draft);
+    setDraft('');
+  };
 
   const status = isLoading
     ? { text: 'Writing...', color: colors.accentAmber }
@@ -253,7 +287,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   const footer = (
     <>
       {isTyping && <BanterTypingBubble speaker={typingSpeaker} isMine={!sameName(typingSpeaker, personaB)} />}
-      {isLoading && messages.length > 0 && (
+      {!isTypingMode && isLoading && messages.length > 0 && (
         <View style={styles.loadingRow}>
           <View style={styles.loadingPill}>
             <ActivityIndicator size="small" color={colors.accentPurple} style={styles.loadingSpinner} />
@@ -265,7 +299,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   );
 
   return (
-    <View style={styles.flex}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.header}>
         <Pressable
           onPress={() => setExpanded((v) => !v)}
@@ -280,9 +314,20 @@ function ActiveSession({ banter }: { banter: Banter }) {
             <Text style={styles.topicPrefix}>Scenario: </Text>
             {banter.topic.trim() || 'Playful Banter'}
           </Text>
-          <View style={[styles.statusPill, { backgroundColor: withAlpha(status.color, 0.15) }]}>
-            <Text style={[styles.statusText, { color: status.color }]}>{status.text}</Text>
-          </View>
+          {isTypingMode ? (
+            <Pressable
+              onPress={coach.openReview}
+              accessibilityRole="button"
+              accessibilityLabel="Vibe Review report"
+              style={[styles.statusPill, { backgroundColor: withAlpha(colors.accentPurple, 0.15) }]}
+            >
+              <Text style={[styles.statusText, { color: colors.accentPurple }]}>📊 Report</Text>
+            </Pressable>
+          ) : (
+            <View style={[styles.statusPill, { backgroundColor: withAlpha(status.color, 0.15) }]}>
+              <Text style={[styles.statusText, { color: status.color }]}>{status.text}</Text>
+            </View>
+          )}
           <Pressable
             onPress={confirmReset}
             hitSlop={8}
@@ -298,11 +343,11 @@ function ActiveSession({ banter }: { banter: Banter }) {
           <View style={styles.versus}>
             <View style={styles.versusSide}>
               <View style={[styles.dot, { backgroundColor: colors.accentPurple }]} />
-              <Text style={[styles.versusName, { color: colors.primary }]}>{personaA}</Text>
+              <Text style={[styles.versusName, { color: colors.accentPurple }]}>{personaA}</Text>
             </View>
             <Text style={styles.vs}>vs</Text>
             <View style={styles.versusSide}>
-              <Text style={[styles.versusName, { color: colors.accentPurple }]}>{personaB}</Text>
+              <Text style={[styles.versusName, { color: colors.primary }]}>{personaB}</Text>
               <View style={[styles.dot, { backgroundColor: colors.primary }]} />
             </View>
           </View>
@@ -321,13 +366,44 @@ function ActiveSession({ banter }: { banter: Banter }) {
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
       />
 
-      <PlaybackControls
-        isPlaying={isPlaying}
-        isLoading={isLoading}
-        queueSize={banter.queueSize}
-        onTogglePlay={banter.togglePlayPause}
-        onNext={banter.skipNext}
-        onContinue={banter.continueBanter}
+      {isTypingMode ? (
+        <Composer
+          value={draft}
+          onChangeText={setDraft}
+          onSend={send}
+          onSuggest={() => coach.openSuggestions(draft)}
+          isLoading={isLoading}
+          bottomInset={insets.bottom}
+        />
+      ) : (
+        <PlaybackControls
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          queueSize={banter.queueSize}
+          onTogglePlay={banter.togglePlayPause}
+          onNext={banter.skipNext}
+          onContinue={banter.continueBanter}
+        />
+      )}
+
+      <SuggestionsDialog
+        visible={coach.suggestionsVisible}
+        loading={coach.suggestionsLoading}
+        suggestions={coach.suggestions}
+        error={coach.suggestionsError}
+        onSelect={(text) => {
+          setDraft(text);
+          coach.closeSuggestions();
+        }}
+        onRegenerate={coach.regenerateSuggestions}
+        onClose={coach.closeSuggestions}
+      />
+      <VibeReviewSheet
+        visible={coach.reviewVisible}
+        loading={coach.reviewLoading}
+        error={coach.reviewError}
+        report={coach.report}
+        onClose={coach.closeReview}
       />
 
       <ResetDialog
@@ -340,7 +416,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
           banter.reset();
         }}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

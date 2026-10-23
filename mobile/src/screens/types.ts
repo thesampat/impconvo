@@ -1,9 +1,8 @@
-// The four app screens, matching AppScreen in android/app/.../MainActivity.kt
-export type ScreenId = 'chat' | 'openers' | 'misinterpret' | 'banter';
+// App screens. Watch & Learn replaced the Android app's Simple Chat.
+export type ScreenId = 'banter' | 'openers' | 'misinterpret';
 
 export const SCREENS: { id: ScreenId; title: string; icon: string }[] = [
-  { id: 'chat', title: 'Simple Chat', icon: '💬' },
+  { id: 'banter', title: 'Watch & Learn', icon: '🎭' },
   { id: 'openers', title: 'Opener Generator', icon: '🎯' },
   { id: 'misinterpret', title: 'Misinterpret Builder', icon: '🤪' },
-  { id: 'banter', title: 'Watch & Learn', icon: '🎭' },
 ];

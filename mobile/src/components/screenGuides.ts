@@ -14,28 +14,6 @@ export interface ScreenGuide {
 }
 
 export const SCREEN_GUIDES: Record<ScreenId, ScreenGuide> = {
-  chat: {
-    title: 'Simple Chat Coach',
-    icon: '💬',
-    subtitle: 'Real-time Texting Roleplay & Analysis',
-    purpose:
-      'Practice realistic texting conversations with an AI partner. Build your confidence, try humor and banter risk-free, and receive live suggestions and an engagement score.',
-    whatToInput:
-      "Describe who you're talking to and where you met, followed by your opening message.",
-    inputExample:
-      "\"Met Maya on Hinge, her prompt says 'Looking for someone to critique my Spotify Wrapped'. Hey Maya, promise not to judge my guilty pleasures if you share yours first?\" (Or simply tap 'Generate Idea' to auto-fill one!)",
-    whatYouGet:
-      '• Realistic, casual partner replies (under 10 words).\n• 3 alternative rewrites anytime you tap the ✨ button (Humor, Banter, Smooth).\n• Complete Vibe Review Report with overall score (1-100) and line-by-line coaching feedback.',
-    steps: [
-      "Tap 'Generate Idea' (or 'New Idea') to get a ready-to-use scenario, or type your own.",
-      "Tap 'Initiate Scenario' to start the roleplay chat.",
-      'Text back and forth naturally with your AI partner.',
-      'Tap the ✨ sparkle icon next to the text bar for witty coaching suggestions, or double-tap one of your sent messages to rewrite it.',
-      "Tap 'Report' to view your Vibe Review with engagement score and coaching tips.",
-    ],
-    proTip:
-      'Tap the ✨ sparkle button next to the text box before sending a message to see 3 different ways a texting coach would write it!',
-  },
   openers: {
     title: 'Opener Line Generator',
     icon: '🎯',
@@ -91,9 +69,9 @@ export const SCREEN_GUIDES: Record<ScreenId, ScreenGuide> = {
     steps: [
       "Describe the scenario (or tap 'Generate Idea') and tap 'Next'.",
       'The AI suggests names, personalities, who speaks first and whether it is online or in person.',
-      'Change any suggestion you like.',
-      "Tap 'Start Conversation' and watch them talk turn-by-turn with 10s delays.",
-      "Tap Pause/Resume or Next to skip ahead, and tap '+6 Turns' to keep it going!",
+      "Change any suggestion you like, and choose who plays you: 'AI (watch)' or 'I type'.",
+      "AI mode: tap 'Start Conversation' and watch them talk turn-by-turn. Use Pause/Resume, Next and '+6 Turns'.",
+      "I type mode: tap 'Start Chatting' and reply yourself. Tap ✨ for suggestions and '📊 Report' for your Vibe Review.",
     ],
     proTip:
       "Try pairing contrasting personalities (like 'Cocky & Confident' vs 'Dry & Reluctant') to see how banter plays off each other!",
