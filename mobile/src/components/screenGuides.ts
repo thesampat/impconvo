@@ -85,7 +85,7 @@ export const SCREEN_GUIDES: Record<ScreenId, ScreenGuide> = {
     whatToInput:
       'Choose whether they are talking online (texting) or in person, enter a topic, and pick names and personality styles for Person A and Person B.',
     inputExample:
-      '"Arguing over who gets the last slice of pizza" or "Who is better at giving directions when driving"',
+      '"Ran into each other at a coffee shop" or "Planning a first date this weekend"',
     whatYouGet:
       "• A simulated conversation that plays out like a real chat or in-person talk.\n• 10-second realistic typing delays with pulsing indicators.\n• Full playback controls: Pause, Resume, Next turn, and '+6 Turns' to continue.",
     steps: [

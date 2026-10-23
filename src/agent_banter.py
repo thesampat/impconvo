@@ -56,10 +56,10 @@ def generate_banter_agent(
         medium = "a texting conversation"
         line_style = "like real witty texting"
 
-    # If no topic provided, use Gemini to dynamically generate a witty debate topic
+    # If no topic provided, use Gemini to dynamically generate a playful conversation topic
     if not topic or not str(topic).strip():
         topic_llm = get_llm(model_name=model_name, temperature=0.9)
-        topic_res = topic_llm.invoke("Give a single short playful debate or argument topic for two witty texting friends (e.g. who makes worse coffee). Output ONLY the topic, under 8 words, no quotes.")
+        topic_res = topic_llm.invoke("Give a single short, playful conversation topic for two witty friends (e.g. who makes worse coffee). Output ONLY the topic, under 8 words, no quotes.")
         topic = extract_text_content(topic_res.content).strip().strip('"').strip("'")
 
     name_a = (persona_a_name or "Alex").strip()

@@ -9,7 +9,7 @@ const FIRST_TURN_DELAY_MS = 1500;
 const TURN_DELAY_MS = 10_000;
 const INITIAL_TURNS = 8;
 const CONTINUE_TURNS = 6;
-const TOPIC_CATEGORY = 'playful argument debate banter topic between two friends or dating matches';
+const TOPIC_CATEGORY = 'fun, playful conversation topic between two friends or dating matches';
 
 export const SYSTEM_ERROR_SPEAKER = 'System Error';
 

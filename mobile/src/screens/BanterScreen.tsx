@@ -78,7 +78,7 @@ function SetupView({ banter }: { banter: Banter }) {
         </View>
 
         <View style={styles.topicHeader}>
-          <Text style={styles.sectionLabel}>Debate Topic</Text>
+          <Text style={styles.sectionLabel}>What are they talking about?</Text>
           <Pressable
             onPress={banter.generateTopic}
             disabled={isGeneratingTopic}
@@ -100,7 +100,7 @@ function SetupView({ banter }: { banter: Banter }) {
         <TextInput
           value={topicInput}
           onChangeText={banter.setTopicInput}
-          placeholder="e.g. Who survives longer in a zombie apocalypse or is cold pizza a cry for help?"
+          placeholder="e.g. Ran into each other at a coffee shop, or planning a first date"
           placeholderTextColor={withAlpha(colors.textMuted, 0.6)}
           multiline
           textAlignVertical="top"
@@ -163,7 +163,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   const confirmReset = () => {
     Alert.alert(
       'Reset Conversation?',
-      'Are you sure you want to exit and configure new personas or a new debate topic?',
+      'Are you sure you want to exit and set up new people or a new topic?',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Reset', style: 'destructive', onPress: banter.reset },
