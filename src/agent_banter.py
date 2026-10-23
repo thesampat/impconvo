@@ -111,6 +111,8 @@ Rules:
 - Generate exactly {num_turns} exchanges, alternating turns, {first_turn_rule}
 - Each line must be SHORT (under 15 words), punchy, and natural-sounding — {line_style}.
 - Stay in character: each person responds the way a real person in that situation would.
+- When starting a new conversation, the first line must be the literal, natural opening of the scenario, exactly what that person would really say first (e.g. "Excuse me, do you know how to get to 5th Street?" for someone asking directions). No joke, tease or flirting in the first line.
+- Let the conversation build realistically from that exact starting point: the real purpose of the scenario (directions, the coffee, the match) stays the topic, and wit and banter grow out of it gradually.
 - Use playful teasing, callbacks, light self-deprecation, and confident reversals where they fit.
 - Do NOT use emojis.
 - Standard English ONLY.
