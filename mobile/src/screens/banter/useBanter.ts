@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '../../api/client';
-import type { BanterExchange, BanterRequest, ConversationSetting } from '../../api/types';
+import type { BanterExchange, BanterRequest, ConversationSetting, ConversationStarter } from '../../api/types';
 import { getPersonaStyle } from './presets';
 
 const FIRST_TURN_DELAY_MS = 1500;
@@ -16,6 +16,8 @@ export const SYSTEM_ERROR_SPEAKER = 'System Error';
 export interface FeedItem extends BanterExchange {
   id: number;
 }
+
+export type SetupStep = 'scenario' | 'details';
 
 export interface BotConfig {
   name: string;
@@ -33,6 +35,10 @@ export function useBanter() {
   const [botA, setBotA] = useState<BotConfig>({ name: 'Alex', presetIndex: 2, customStyle: '' });
   const [botB, setBotB] = useState<BotConfig>({ name: 'Jordan', presetIndex: 0, customStyle: '' });
   const [setting, setSetting] = useState<ConversationSetting>('online');
+  const [starter, setStarter] = useState<ConversationStarter>('me');
+  const [setupStep, setSetupStep] = useState<SetupStep>('scenario');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [isGeneratingTopic, setIsGeneratingTopic] = useState(false);
 
   // Session
@@ -141,6 +147,31 @@ export function useBanter() {
     }
   }, [topicInput]);
 
+  // Step 1 -> 2: let the AI guess names, who starts and where; every guess stays editable.
+  const analyzeScenario = useCallback(async () => {
+    const scenario = topicInput.trim();
+    if (!scenario) return;
+    setIsAnalyzing(true);
+    setAnalyzeError(null);
+    try {
+      const res = await api.analyzeScenario({ scenario });
+      setBotA((prev) => ({ ...prev, name: res.me_name }));
+      setBotB((prev) => ({ ...prev, name: res.other_name }));
+      setStarter(res.starter);
+      setSetting(res.setting);
+    } catch (e) {
+      setAnalyzeError(`Couldn't read the scenario (${errorMessage(e, 'check connection')}). Set the details yourself.`);
+    } finally {
+      setIsAnalyzing(false);
+      setSetupStep('details');
+    }
+  }, [topicInput]);
+
+  const backToScenario = useCallback(() => {
+    setAnalyzeError(null);
+    setSetupStep('scenario');
+  }, []);
+
   const start = useCallback(async () => {
     const trimmedTopic = topicInput.trim();
     const nameA = botA.name.trim() || 'Alex';
@@ -153,6 +184,7 @@ export function useBanter() {
       persona_b_name: nameB,
       persona_b_style: getPersonaStyle(botB.presetIndex, botB.customStyle),
       setting,
+      starter,
     };
 
     clearTimer();
@@ -189,7 +221,7 @@ export function useBanter() {
         },
       ]);
     }
-  }, [botA, botB, clearTimer, scheduleNext, setFeed, setLoading, setPlaying, setQueue, setting, topicInput]);
+  }, [botA, botB, clearTimer, scheduleNext, setFeed, setLoading, setPlaying, setQueue, setting, starter, topicInput]);
 
   const togglePlayPause = useCallback(() => {
     if (playingRef.current) {
@@ -256,6 +288,7 @@ export function useBanter() {
     setQueue([]);
     setTopic('');
     setIsSessionActive(false);
+    setSetupStep('scenario');
   }, [clearTimer, setFeed, setLoading, setPlaying, setQueue]);
 
   return {
@@ -268,6 +301,13 @@ export function useBanter() {
     setBotB,
     setting,
     setSetting,
+    starter,
+    setStarter,
+    setupStep,
+    isAnalyzing,
+    analyzeError,
+    analyzeScenario,
+    backToScenario,
     isGeneratingTopic,
     generateTopic,
     start,

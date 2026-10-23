@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import type { ConversationSetting } from '../api/types';
+import type { ConversationSetting, ConversationStarter } from '../api/types';
 import { colors, gradients, radius } from '../theme';
 import { BanterChatBubble, BanterTypingBubble, SystemErrorBubble } from './banter/BanterBubble';
 import PersonaConfigCard from './banter/PersonaConfigCard';
@@ -44,9 +44,6 @@ const SETTING_OPTIONS: { id: ConversationSetting; label: string }[] = [
 ];
 
 function SetupView({ banter }: { banter: Banter }) {
-  const { topicInput, isGeneratingTopic, isLoading } = banter;
-  const hasTopic = topicInput.trim().length > 0;
-
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
@@ -56,96 +53,175 @@ function SetupView({ banter }: { banter: Banter }) {
       >
         <View style={styles.titleRow}>
           <Text style={styles.title}>🎭 Watch & Learn</Text>
-          <Text style={styles.titleTag}>• 10s Turns</Text>
+          <Text style={styles.titleTag}>• {banter.setupStep === 'scenario' ? 'Step 1 of 2' : 'Step 2 of 2'}</Text>
         </View>
-
-        <Text style={[styles.sectionLabel, styles.settingLabel]}>Where are they talking?</Text>
-        <View style={styles.settingRow}>
-          {SETTING_OPTIONS.map((option) => {
-            const selected = banter.setting === option.id;
-            return (
-              <Pressable
-                key={option.id}
-                onPress={() => banter.setSetting(option.id)}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                style={[styles.settingChip, selected && styles.settingChipSelected]}
-              >
-                <Text style={[styles.settingText, selected && styles.settingTextSelected]}>{option.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View style={styles.topicHeader}>
-          <Text style={styles.sectionLabel}>Scenario</Text>
-          <Pressable
-            onPress={banter.generateTopic}
-            disabled={isGeneratingTopic}
-            accessibilityRole="button"
-            accessibilityLabel="Generate topic"
-            style={({ pressed }) => [styles.ideaButton, pressed && styles.pressed]}
-          >
-            {isGeneratingTopic ? (
-              <>
-                <ActivityIndicator size="small" color={colors.primary} style={styles.ideaSpinner} />
-                <Text style={[styles.ideaText, styles.ideaTextSmall]}>Generating...</Text>
-              </>
-            ) : (
-              <Text style={styles.ideaText}>{hasTopic ? '↻ New Idea' : '✨ Generate Idea'}</Text>
-            )}
-          </Pressable>
-        </View>
-
-        <TextInput
-          value={topicInput}
-          onChangeText={banter.setTopicInput}
-          placeholder="e.g. I approach a girl at a cafe, or a girl asks me for directions on the street"
-          placeholderTextColor={withAlpha(colors.textMuted, 0.6)}
-          multiline
-          textAlignVertical="top"
-          selectionColor={colors.primary}
-          style={styles.topicInput}
-        />
-
-        <View style={styles.cardGap}>
-          <PersonaConfigCard
-            label="Person A · you"
-            accentColor={colors.accentPurple}
-            config={banter.botA}
-            onChange={banter.setBotA}
-          />
-        </View>
-        <View style={styles.cardGapSmall}>
-          <PersonaConfigCard
-            label="Person B · the other person"
-            accentColor={colors.primary}
-            config={banter.botB}
-            onChange={banter.setBotB}
-          />
-        </View>
-
-        <Pressable
-          onPress={banter.start}
-          disabled={isLoading}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.startButton, pressed && styles.pressed]}
-        >
-          <LinearGradient
-            colors={isLoading ? [colors.surfaceVariant, colors.surfaceVariant] : gradients.primary}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.startGradient}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={colors.onPrimary} />
-            ) : (
-              <Text style={styles.startText}>Start Conversation ▶</Text>
-            )}
-          </LinearGradient>
-        </Pressable>
+        {banter.setupStep === 'scenario' ? <ScenarioStep banter={banter} /> : <DetailsStep banter={banter} />}
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+function ScenarioStep({ banter }: { banter: Banter }) {
+  const { topicInput, isGeneratingTopic, isAnalyzing } = banter;
+  const hasTopic = topicInput.trim().length > 0;
+
+  return (
+    <>
+      <View style={styles.topicHeader}>
+        <Text style={styles.sectionLabel}>Scenario</Text>
+        <Pressable
+          onPress={banter.generateTopic}
+          disabled={isGeneratingTopic || isAnalyzing}
+          accessibilityRole="button"
+          accessibilityLabel="Generate scenario"
+          style={({ pressed }) => [styles.ideaButton, pressed && styles.pressed]}
+        >
+          {isGeneratingTopic ? (
+            <>
+              <ActivityIndicator size="small" color={colors.primary} style={styles.ideaSpinner} />
+              <Text style={[styles.ideaText, styles.ideaTextSmall]}>Generating...</Text>
+            </>
+          ) : (
+            <Text style={styles.ideaText}>{hasTopic ? '↻ New Idea' : '✨ Generate Idea'}</Text>
+          )}
+        </Pressable>
+      </View>
+
+      <TextInput
+        value={topicInput}
+        onChangeText={banter.setTopicInput}
+        placeholder="e.g. I approach a girl at a cafe, or a girl asks me for directions on the street"
+        placeholderTextColor={withAlpha(colors.textMuted, 0.6)}
+        multiline
+        textAlignVertical="top"
+        selectionColor={colors.primary}
+        style={styles.topicInput}
+      />
+      <Text style={styles.hint}>
+        Next, the AI suggests names, who starts and where they are talking. You can change all of it.
+      </Text>
+
+      <GradientButton
+        label="Next →"
+        loadingLabel="Reading scenario..."
+        loading={isAnalyzing}
+        disabled={!hasTopic}
+        onPress={banter.analyzeScenario}
+      />
+    </>
+  );
+}
+
+function DetailsStep({ banter }: { banter: Banter }) {
+  const { isLoading, botA, botB } = banter;
+  const meName = botA.name.trim() || 'Me';
+  const otherName = botB.name.trim() || 'Them';
+  const starterOptions: { id: ConversationStarter; label: string }[] = [
+    { id: 'me', label: `${meName} (me) → ${otherName}` },
+    { id: 'other', label: `${otherName} → ${meName} (me)` },
+  ];
+
+  return (
+    <>
+      <Pressable onPress={banter.backToScenario} accessibilityRole="button" style={styles.scenarioSummary}>
+        <Text style={styles.summaryLabel}>Scenario · tap to edit</Text>
+        <Text style={styles.summaryText} numberOfLines={3}>
+          {banter.topicInput.trim()}
+        </Text>
+      </Pressable>
+      {banter.analyzeError ? <Text style={styles.analyzeError}>{banter.analyzeError}</Text> : null}
+
+      <Text style={[styles.sectionLabel, styles.settingLabel]}>Where are they talking?</Text>
+      <Segmented options={SETTING_OPTIONS} value={banter.setting} onChange={banter.setSetting} />
+
+      <Text style={[styles.sectionLabel, styles.settingLabel]}>Who speaks first?</Text>
+      <Segmented options={starterOptions} value={banter.starter} onChange={banter.setStarter} />
+
+      <View style={styles.cardGapSmall}>
+        <PersonaConfigCard label="Person A · you" accentColor={colors.accentPurple} config={botA} onChange={banter.setBotA} />
+      </View>
+      <View style={styles.cardGapSmall}>
+        <PersonaConfigCard
+          label="Person B · the other person"
+          accentColor={colors.primary}
+          config={botB}
+          onChange={banter.setBotB}
+        />
+      </View>
+
+      <GradientButton label="Start Conversation ▶" loading={isLoading} onPress={banter.start} />
+    </>
+  );
+}
+
+function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { id: T; label: string }[];
+  value: T;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <View style={styles.settingRow}>
+      {options.map((option) => {
+        const selected = value === option.id;
+        return (
+          <Pressable
+            key={option.id}
+            onPress={() => onChange(option.id)}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            style={[styles.settingChip, selected && styles.settingChipSelected]}
+          >
+            <Text style={[styles.settingText, selected && styles.settingTextSelected]} numberOfLines={1}>
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function GradientButton({
+  label,
+  loadingLabel,
+  loading,
+  disabled = false,
+  onPress,
+}: {
+  label: string;
+  loadingLabel?: string;
+  loading: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+}) {
+  const inactive = loading || disabled;
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={inactive}
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.startButton, pressed && styles.pressed]}
+    >
+      <LinearGradient
+        colors={inactive ? [colors.surfaceVariant, colors.surfaceVariant] : gradients.primary}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.startGradient}
+      >
+        {loading ? (
+          <View style={styles.buttonLoadingRow}>
+            <ActivityIndicator color={colors.onPrimary} />
+            {loadingLabel ? <Text style={[styles.startText, styles.buttonLoadingText]}>{loadingLabel}</Text> : null}
+          </View>
+        ) : (
+          <Text style={[styles.startText, disabled && styles.startTextDisabled]}>{label}</Text>
+        )}
+      </LinearGradient>
+    </Pressable>
   );
 }
 
@@ -324,6 +400,21 @@ const styles = StyleSheet.create({
   startButton: { marginTop: 18, height: 46, borderRadius: 14, overflow: 'hidden' },
   startGradient: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   startText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  startTextDisabled: { color: colors.textMuted },
+  buttonLoadingRow: { flexDirection: 'row', alignItems: 'center' },
+  buttonLoadingText: { marginLeft: 8 },
+  hint: { color: colors.textMuted, fontSize: 12, marginTop: 8, lineHeight: 17 },
+  scenarioSummary: {
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  summaryLabel: { color: colors.primary, fontSize: 11, fontWeight: '700', marginBottom: 4 },
+  summaryText: { color: colors.text, fontSize: 14, lineHeight: 20 },
+  analyzeError: { color: colors.error, fontSize: 12, marginBottom: 10 },
 
   // Active session header
   header: {

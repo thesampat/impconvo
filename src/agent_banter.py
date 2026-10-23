@@ -45,6 +45,7 @@ def generate_banter_agent(
     persona_b_style: Optional[str] = None,
     chat_history: Optional[List[Dict]] = None,
     setting: Optional[str] = "online",
+    starter: Optional[str] = None,
     model_name: Optional[str] = None,
     user_id: Optional[str] = None
 ) -> Dict:
@@ -83,6 +84,9 @@ def generate_banter_agent(
             next_speaker = name_b
         else:
             next_speaker = name_a
+
+    if not next_speaker and starter in ("me", "other"):
+        next_speaker = name_a if starter == "me" else name_b
 
     if next_speaker:
         first_turn_rule = f"starting with {next_speaker}."
@@ -152,3 +156,46 @@ No markdown formatting. Raw JSON only."""
 
 
 
+
+
+ANALYZE_SCENARIO_PROMPT = """Read this social scenario written by a user and work out how the conversation is set up.
+"I", "me" and "my" in the scenario mean the user.
+
+Scenario: {scenario}
+
+Decide:
+- me_name: a realistic first name for the user. If the scenario does not hint at the user's gender, pick a gender-neutral name.
+- other_name: a realistic first name for the other person that matches what the scenario says about them (e.g. "a girl" -> a female name, "a guy" -> a male name; gender-neutral if unclear).
+- starter: "me" if the user speaks first (e.g. the user approaches or messages someone), or "other" if the other person speaks first (e.g. someone asks the user for directions).
+- setting: "online" if they are texting or messaging (dating apps, DMs, chats), or "in_person" if they are talking face to face.
+
+Return a valid JSON object only:
+{{"me_name": "...", "other_name": "...", "starter": "me", "setting": "in_person"}}
+No markdown. Raw JSON only."""
+
+
+def analyze_scenario_agent(
+    scenario: str,
+    model_name: Optional[str] = None,
+    user_id: Optional[str] = None
+) -> Dict:
+    prompt = ANALYZE_SCENARIO_PROMPT.format(scenario=scenario.strip())
+    llm = get_llm(json_mode=True, model_name=model_name, temperature=0.4)
+    try:
+        response = llm.invoke(prompt)
+        if user_id:
+            tokens = extract_tokens_from_llm_response(response, fallback_text=prompt)
+            record_user_usage(user_id, tokens)
+        result = clean_json_response(response.content)
+    except Exception as e:
+        print(f"Error analyzing scenario: {e}", flush=True)
+        raise RuntimeError(f"AI scenario analysis failed: {e}")
+
+    starter = str(result.get("starter", "")).strip().lower()
+    setting = str(result.get("setting", "")).strip().lower().replace("-", "_")
+    return {
+        "me_name": str(result.get("me_name") or "Alex").strip(),
+        "other_name": str(result.get("other_name") or "Jordan").strip(),
+        "starter": starter if starter in ("me", "other") else "me",
+        "setting": setting if setting in ("online", "in_person") else "online",
+    }

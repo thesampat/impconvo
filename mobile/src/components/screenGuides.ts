@@ -89,11 +89,10 @@ export const SCREEN_GUIDES: Record<ScreenId, ScreenGuide> = {
     whatYouGet:
       "• A simulated conversation that plays out like a real chat or in-person talk.\n• 10-second realistic typing delays with pulsing indicators.\n• Full playback controls: Pause, Resume, Next turn, and '+6 Turns' to continue.",
     steps: [
-      "Pick 'Online (texting)' or 'In person'.",
-      "Describe the scenario, or tap 'Generate Idea' to get one.",
-      'Name Person A (you) and Person B (the other person), and pick a personality style for each.',
-      "Tap 'Start Conversation'.",
-      'Watch them talk turn-by-turn with 10s delays.',
+      "Describe the scenario (or tap 'Generate Idea') and tap 'Next'.",
+      'The AI suggests names, who speaks first and whether it is online or in person.',
+      'Change any suggestion you like and pick a personality style for each person.',
+      "Tap 'Start Conversation' and watch them talk turn-by-turn with 10s delays.",
       "Tap Pause/Resume or Next to skip ahead, and tap '+6 Turns' to keep it going!",
     ],
     proTip:

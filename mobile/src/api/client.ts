@@ -1,5 +1,7 @@
 // Ported from android/app/.../data/api/{ApiConfig,ApiService,RetrofitClient}.kt
 import type {
+  AnalyzeScenarioRequest,
+  AnalyzeScenarioResponse,
   BanterRequest,
   BanterResponse,
   ConfigResponse,
@@ -96,4 +98,6 @@ export const api = {
   getBanter: (req: BanterRequest) => request<BanterResponse>('POST', 'api/banter', req),
   generateScenario: (req: GenerateScenarioRequest) =>
     request<GenerateScenarioResponse>('POST', 'api/generate-scenario', req),
+  analyzeScenario: (req: AnalyzeScenarioRequest) =>
+    request<AnalyzeScenarioResponse>('POST', 'api/analyze-scenario', req),
 };

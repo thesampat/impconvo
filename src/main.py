@@ -21,11 +21,11 @@ os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Import modular schemas, agent logic, and usage tracker
-from src.schemas import StartChatRequest, StartChatResponse, SendMessageRequest, SendMessageResponse, ConfigRequest, ImproveMessageRequest, VibeReviewRequest, VibeReviewResponse, VibeReviewItem, InitiateChatRequest, InitiateChatResponse, GetOpenersRequest, GetOpenersResponse, OpenerItem, MisinterpretRequest, MisinterpretResponse, MisinterpretItem, BanterRequest, BanterResponse, BanterExchange, GenerateScenarioRequest, GenerateScenarioResponse
+from src.schemas import StartChatRequest, StartChatResponse, SendMessageRequest, SendMessageResponse, ConfigRequest, ImproveMessageRequest, VibeReviewRequest, VibeReviewResponse, VibeReviewItem, InitiateChatRequest, InitiateChatResponse, GetOpenersRequest, GetOpenersResponse, OpenerItem, MisinterpretRequest, MisinterpretResponse, MisinterpretItem, BanterRequest, BanterResponse, BanterExchange, GenerateScenarioRequest, GenerateScenarioResponse, AnalyzeScenarioRequest, AnalyzeScenarioResponse
 from src.agent import generate_scenario, generate_next_reply, generate_improved_options, generate_vibe_review, initiate_chat_scenario, generate_random_scenario
 from src.agent_get_opener import generate_openers_agent
 from src.agent_misinterpret import generate_misinterpretations_agent
-from src.agent_banter import generate_banter_agent
+from src.agent_banter import generate_banter_agent, analyze_scenario_agent
 from src.usage_tracker import is_user_within_quota, get_user_usage
 import logging
 
@@ -284,6 +284,22 @@ async def api_generate_scenario(request: Request):
     return GenerateScenarioResponse(scenario=scenario_text)
 
 
+@app.post("/api/analyze-scenario", response_model=AnalyzeScenarioResponse)
+def api_analyze_scenario(req: AnalyzeScenarioRequest, request: Request):
+    if not req.scenario.strip():
+        raise HTTPException(status_code=400, detail="Scenario is empty.")
+    try:
+        result = analyze_scenario_agent(
+            scenario=req.scenario,
+            model_name=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
+            user_id=getattr(request.state, "user_id", None)
+        )
+        return AnalyzeScenarioResponse(**result)
+    except Exception as e:
+        logger.error(f"Error in /api/analyze-scenario: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/openers")
 def get_openers_page():
     return FileResponse(os.path.join(static_dir, "openers.html"))
@@ -360,6 +376,7 @@ def api_banter(req: BanterRequest, request: Request):
             persona_b_style=req.persona_b_style,
             chat_history=history_dicts,
             setting=req.setting,
+            starter=req.starter,
             model_name=model_name,
             user_id=user_id
         )

@@ -93,6 +93,7 @@ export interface MisinterpretResponse {
 }
 
 export type ConversationSetting = 'online' | 'in_person';
+export type ConversationStarter = 'me' | 'other';
 
 export interface BanterRequest {
   topic?: string | null;
@@ -103,6 +104,7 @@ export interface BanterRequest {
   persona_b_style?: string | null;
   chat_history?: MessageModel[] | null;
   setting?: ConversationSetting;
+  starter?: ConversationStarter;
 }
 
 export interface BanterExchange {
@@ -133,4 +135,15 @@ export interface GenerateScenarioRequest {
 
 export interface GenerateScenarioResponse {
   scenario: string;
+}
+
+export interface AnalyzeScenarioRequest {
+  scenario: string;
+}
+
+export interface AnalyzeScenarioResponse {
+  me_name: string;
+  other_name: string;
+  starter: ConversationStarter;
+  setting: ConversationSetting;
 }

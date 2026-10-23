@@ -111,6 +111,8 @@ class BanterRequest(BaseModel):
     chat_history: Optional[List[MessageModel]] = None
     # "online" (texting) or "in_person" (talking face to face)
     setting: Optional[str] = "online"
+    # "me" (persona A speaks first) or "other" (persona B); omitted = inferred from the topic
+    starter: Optional[str] = None
 
 class BanterExchange(BaseModel):
     speaker: str
@@ -128,3 +130,12 @@ class GenerateScenarioRequest(BaseModel):
 
 class GenerateScenarioResponse(BaseModel):
     scenario: str
+
+class AnalyzeScenarioRequest(BaseModel):
+    scenario: str
+
+class AnalyzeScenarioResponse(BaseModel):
+    me_name: str
+    other_name: str
+    starter: str
+    setting: str
