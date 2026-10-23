@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '../../api/client';
 import type { BanterExchange, BanterRequest, ConversationSetting, ConversationStarter } from '../../api/types';
-import { getPersonaStyle } from './presets';
+import { getPersonaStyle, presetIndexForKey } from './presets';
 
 const FIRST_TURN_DELAY_MS = 1500;
 const TURN_DELAY_MS = 10_000;
@@ -147,7 +147,7 @@ export function useBanter() {
     }
   }, [topicInput]);
 
-  // Step 1 -> 2: let the AI guess names, who starts and where; every guess stays editable.
+  // Step 1 -> 2: let the AI guess names, personalities, who starts and where; every guess stays editable.
   const analyzeScenario = useCallback(async () => {
     const scenario = topicInput.trim();
     if (!scenario) return;
@@ -155,8 +155,16 @@ export function useBanter() {
     setAnalyzeError(null);
     try {
       const res = await api.analyzeScenario({ scenario });
-      setBotA((prev) => ({ ...prev, name: res.me_name }));
-      setBotB((prev) => ({ ...prev, name: res.other_name }));
+      setBotA((prev) => ({
+        ...prev,
+        name: res.me_name,
+        presetIndex: presetIndexForKey(res.me_personality, prev.presetIndex),
+      }));
+      setBotB((prev) => ({
+        ...prev,
+        name: res.other_name,
+        presetIndex: presetIndexForKey(res.other_personality, prev.presetIndex),
+      }));
       setStarter(res.starter);
       setSetting(res.setting);
     } catch (e) {

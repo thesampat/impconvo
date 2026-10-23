@@ -1,4 +1,6 @@
 // Ported from AppViewModel.banterPresets
+import type { PersonalityKey } from '../../api/types';
+
 export interface BanterPersonaOption {
   title: string;
   style: string;
@@ -11,6 +13,13 @@ export const BANTER_PRESETS: readonly BanterPersonaOption[] = [
   { title: 'Dry & Reluctant', style: 'unimpressed, deadpan, concise, but secretly invested in the banter.' },
   { title: 'Nerdy & Overthinker', style: 'hyper-intellectual, overthinks everything, references random facts and logic.' },
 ];
+
+// Matches the personality keys returned by /api/analyze-scenario
+const PRESET_INDEX_BY_KEY: Record<PersonalityKey, number> = { sarcastic: 0, flirty: 1, cocky: 2, dry: 3, nerdy: 4 };
+
+export function presetIndexForKey(key: string, fallback: number): number {
+  return PRESET_INDEX_BY_KEY[key as PersonalityKey] ?? fallback;
+}
 
 /** Index used for the free-text "Custom" option. */
 export const CUSTOM_PRESET_INDEX = BANTER_PRESETS.length;

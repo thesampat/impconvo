@@ -94,6 +94,7 @@ export interface MisinterpretResponse {
 
 export type ConversationSetting = 'online' | 'in_person';
 export type ConversationStarter = 'me' | 'other';
+export type PersonalityKey = 'sarcastic' | 'flirty' | 'cocky' | 'dry' | 'nerdy';
 
 export interface BanterRequest {
   topic?: string | null;
@@ -146,4 +147,6 @@ export interface AnalyzeScenarioResponse {
   other_name: string;
   starter: ConversationStarter;
   setting: ConversationSetting;
+  me_personality: PersonalityKey;
+  other_personality: PersonalityKey;
 }

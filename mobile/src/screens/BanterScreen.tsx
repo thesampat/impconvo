@@ -98,7 +98,7 @@ function ScenarioStep({ banter }: { banter: Banter }) {
         style={styles.topicInput}
       />
       <Text style={styles.hint}>
-        Next, the AI suggests names, who starts and where they are talking. You can change all of it.
+        Next, the AI suggests names, personalities, who starts and where they are talking. You can change all of it.
       </Text>
 
       <GradientButton

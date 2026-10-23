@@ -139,3 +139,6 @@ class AnalyzeScenarioResponse(BaseModel):
     other_name: str
     starter: str
     setting: str
+    # one of: sarcastic, flirty, cocky, dry, nerdy
+    me_personality: str = "cocky"
+    other_personality: str = "sarcastic"

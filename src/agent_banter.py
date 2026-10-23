@@ -168,9 +168,13 @@ Decide:
 - other_name: a realistic first name for the other person that matches what the scenario says about them (e.g. "a girl" -> a female name, "a guy" -> a male name; gender-neutral if unclear).
 - starter: "me" if the user speaks first (e.g. the user approaches or messages someone), or "other" if the other person speaks first (e.g. someone asks the user for directions).
 - setting: "online" if they are texting or messaging (dating apps, DMs, chats), or "in_person" if they are talking face to face.
+- me_personality and other_personality: the style that best fits how each person would realistically act in this scenario, chosen from exactly one of:
+  "sarcastic" (sarcastic and witty), "flirty" (flirty and teasing), "cocky" (cocky and confident),
+  "dry" (dry, reserved, a bit reluctant), "nerdy" (nerdy overthinker).
+  For example, a stranger asking for directions is usually "dry"; someone confidently approaching a person they like is usually "cocky" or "flirty".
 
 Return a valid JSON object only:
-{{"me_name": "...", "other_name": "...", "starter": "me", "setting": "in_person"}}
+{{"me_name": "...", "other_name": "...", "starter": "me", "setting": "in_person", "me_personality": "cocky", "other_personality": "dry"}}
 No markdown. Raw JSON only."""
 
 
@@ -191,6 +195,9 @@ def analyze_scenario_agent(
         print(f"Error analyzing scenario: {e}", flush=True)
         raise RuntimeError(f"AI scenario analysis failed: {e}")
 
+    personalities = ("sarcastic", "flirty", "cocky", "dry", "nerdy")
+    me_personality = str(result.get("me_personality", "")).strip().lower()
+    other_personality = str(result.get("other_personality", "")).strip().lower()
     starter = str(result.get("starter", "")).strip().lower()
     setting = str(result.get("setting", "")).strip().lower().replace("-", "_")
     return {
@@ -198,4 +205,6 @@ def analyze_scenario_agent(
         "other_name": str(result.get("other_name") or "Jordan").strip(),
         "starter": starter if starter in ("me", "other") else "me",
         "setting": setting if setting in ("online", "in_person") else "online",
+        "me_personality": me_personality if me_personality in personalities else "cocky",
+        "other_personality": other_personality if other_personality in personalities else "sarcastic",
     }
