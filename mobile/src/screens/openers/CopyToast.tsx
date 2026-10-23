@@ -2,14 +2,14 @@ import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius } from '../../theme';
+import { colors, radius, spacing } from '../../theme';
 
 interface Props {
   visible: boolean;
   message?: string;
 }
 
-export default function CopyToast({ visible, message = 'Copied!' }: Props) {
+export default function CopyToast({ visible, message = 'Copied' }: Props) {
   const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -25,7 +25,7 @@ export default function CopyToast({ visible, message = 'Copied!' }: Props) {
     <Animated.View
       pointerEvents="none"
       accessibilityLiveRegion="polite"
-      style={[styles.toast, { bottom: insets.bottom + 24, opacity }]}
+      style={[styles.toast, { bottom: insets.bottom + spacing.xl, opacity }]}
     >
       <Text style={styles.text}>{message}</Text>
     </Animated.View>
@@ -38,10 +38,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.borderGlow,
-    borderWidth: 1,
-    borderRadius: radius.pill,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  text: { color: colors.text, fontSize: 13, fontWeight: '600' },
+  text: { color: colors.text, fontSize: 13, fontWeight: '500' },
 });

@@ -37,9 +37,6 @@ class SendMessageResponse(BaseModel):
     reply: str
     persona_type: Optional[str] = None
 
-class ConfigRequest(BaseModel):
-    model_name: Optional[str] = "gemini-2.5-flash"
-
 class ImproveMessageRequest(BaseModel):
     context: str
     scenario: str

@@ -143,7 +143,7 @@ def get_llm(json_mode: bool = False, api_key: Optional[str] = None, model_name: 
     if not key:
         raise ValueError("Gemini API Key is missing. Please set GEMINI_API_KEY in your environment/settings.")
     
-    model = model_name or os.getenv("GEMINI_MODEL") or "gemini-3.5-flash"
+    model = model_name or os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
     
     from langchain_google_genai import HarmBlockThreshold, HarmCategory
     

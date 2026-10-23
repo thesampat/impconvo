@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '../api/client';
 import type { MisinterpretResponse } from '../api/types';
+import { spacing } from '../theme';
 import PartnerQuote from './misinterpret/PartnerQuote';
 import CopyToast from './openers/CopyToast';
 import ResultCard from './openers/ResultCard';
@@ -41,13 +42,13 @@ export default function MisinterpretScreen() {
   return (
     <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[s.content, { paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <Text style={s.title}>🤪 Misinterpret Builder</Text>
+        <Text style={s.title}>Misinterpret</Text>
         <Text style={s.subtitle}>
-          Turn mundane partner texts into witty teasing and flirtatious comebacks. Tap a result to copy it.
+          Turn an ordinary text into a playful, teasing reply. Tap a result to copy it.
         </Text>
 
         <TextInput
@@ -58,11 +59,11 @@ export default function MisinterpretScreen() {
           placeholder="e.g. I had salad for dinner today or I'm going to the gym now"
           placeholderTextColor={placeholderTextColor}
           multiline
-          style={[s.input, { minHeight: 90, maxHeight: 160 }, focused && s.inputFocused]}
+          style={[s.input, { minHeight: 76, maxHeight: 160 }, focused && s.inputFocused]}
         />
 
         <GenerateButton
-          label="Generate Playful Twists ✨"
+          label="Generate replies"
           loading={loading}
           disabled={!canGenerate}
           onPress={generate}
@@ -71,7 +72,7 @@ export default function MisinterpretScreen() {
 
         {items.length > 0 ? (
           <>
-            <Text style={s.sectionLabel}>Coached Playful Twists:</Text>
+            <Text style={s.sectionLabel}>Suggestions</Text>
             {result?.partner_text ? <PartnerQuote text={result.partner_text} /> : null}
             <View style={s.list}>
               {items.map((m, i) => (

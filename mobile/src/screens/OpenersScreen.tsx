@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '../api/client';
 import type { OpenerItem } from '../api/types';
-import { colors, radius } from '../theme';
+import { colors, radius, spacing } from '../theme';
 import CopyToast from './openers/CopyToast';
 import ResultCard from './openers/ResultCard';
 import { GenerateButton, errorMessage, placeholderTextColor, screenStyles as s } from './openers/shared';
@@ -80,13 +80,13 @@ export default function OpenersScreen() {
   return (
     <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[s.content, { paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <Text style={s.title}>🔑 Opener Generator</Text>
+        <Text style={s.title}>Openers</Text>
         <Text style={s.subtitle}>
-          Describe a profile detail or upload a screenshot to get high-engagement openers. Tap a result to copy it.
+          Describe a profile detail or add a screenshot. Tap a result to copy it.
         </Text>
 
         <TextInput
@@ -106,7 +106,7 @@ export default function OpenersScreen() {
             accessibilityRole="button"
             style={({ pressed }) => [styles.attachButton, pressed && styles.pressed]}
           >
-            <Text style={styles.attachText}>🖼️ {image ? 'Change Screenshot' : 'Upload Screenshot'}</Text>
+            <Text style={styles.attachText}>{image ? 'Change screenshot' : 'Add screenshot'}</Text>
           </Pressable>
           {image ? (
             <>
@@ -119,7 +119,7 @@ export default function OpenersScreen() {
         </View>
 
         <GenerateButton
-          label="Generate High-Vibe Openers ✨"
+          label="Generate openers"
           loading={loading}
           disabled={!canGenerate}
           onPress={generate}
@@ -128,7 +128,7 @@ export default function OpenersScreen() {
 
         {openers.length > 0 ? (
           <>
-            <Text style={s.sectionLabel}>Suggested Opening Lines:</Text>
+            <Text style={s.sectionLabel}>Suggestions</Text>
             <View style={s.list}>
               {openers.map((o, i) => (
                 <ResultCard key={`${i}-${o.text}`} badge={o.vibe} text={o.text} explanation={o.explanation} onCopy={copy} />
@@ -147,18 +147,27 @@ export default function OpenersScreen() {
 }
 
 const styles = StyleSheet.create({
-  input: { minHeight: 100, maxHeight: 200 },
-  attachRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  input: { minHeight: 84, maxHeight: 180 },
+  attachRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
   attachButton: {
-    height: 34,
-    paddingHorizontal: 12,
-    borderRadius: radius.md,
-    backgroundColor: 'rgba(56,189,248,0.15)',
+    height: 30,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
     justifyContent: 'center',
   },
-  attachText: { color: colors.primary, fontSize: 12, fontWeight: '600' },
+  attachText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
   pressed: { opacity: 0.7 },
-  thumb: { width: 34, height: 34, borderRadius: radius.sm, marginLeft: 10, backgroundColor: colors.surfaceVariant },
-  remove: { marginLeft: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  removeText: { color: colors.error, fontSize: 12 },
+  thumb: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.sm,
+    marginLeft: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceVariant,
+  },
+  remove: { marginLeft: spacing.sm, paddingHorizontal: spacing.xs, paddingVertical: 2 },
+  removeText: { color: colors.textMuted, fontSize: 13 },
 });

@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { ScreenId } from '../screens/types';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, type } from '../theme';
 import { SCREEN_GUIDES } from './screenGuides';
 
 interface Props {
@@ -23,48 +23,50 @@ export default function ScreenInfoSheet({ visible, screen, onClose }: Props) {
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <ScrollView
-            contentContainerStyle={[styles.content, { paddingBottom: spacing.xl + insets.bottom }]}
+            contentContainerStyle={[styles.content, { paddingBottom: spacing.lg + insets.bottom }]}
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.headerRow}>
-              <Text style={styles.title}>
-                {guide.icon} {guide.title}
-              </Text>
-              <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close">
+              <Text style={styles.title}>{guide.title}</Text>
+              <Pressable
+                onPress={onClose}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+                style={({ pressed }) => [styles.closeBtn, pressed && styles.closePressed]}
+              >
                 <Text style={styles.close}>✕</Text>
               </Pressable>
             </View>
             <Text style={styles.subtitle}>{guide.subtitle}</Text>
 
-            <Section title="🎯 What is this screen for?">
+            <Section title="Purpose">
               <Text style={styles.body}>{guide.purpose}</Text>
             </Section>
 
-            <Section title="📥 What Input to Provide">
+            <Section title="What to provide">
               <Text style={styles.body}>{guide.whatToInput}</Text>
               <View style={styles.exampleBox}>
-                <Text style={styles.exampleLabel}>Example Input:</Text>
+                <Text style={styles.exampleLabel}>Example</Text>
                 <Text style={styles.exampleText}>{guide.inputExample}</Text>
               </View>
             </Section>
 
-            <Section title="📤 What Output You Get">
+            <Section title="What you get">
               <Text style={styles.body}>{guide.whatYouGet}</Text>
             </Section>
 
-            <Section title="🚀 Step-by-Step Guide">
+            <Section title="Steps">
               {guide.steps.map((step, i) => (
                 <View key={i} style={styles.stepRow}>
-                  <View style={styles.stepNum}>
-                    <Text style={styles.stepNumText}>{i + 1}</Text>
-                  </View>
+                  <Text style={styles.stepNum}>{i + 1}</Text>
                   <Text style={[styles.body, styles.flex]}>{step}</Text>
                 </View>
               ))}
             </Section>
 
             <View style={styles.tipCard}>
-              <Text style={styles.tipTitle}>💡 Coach Pro-Tip</Text>
+              <Text style={styles.tipTitle}>Tip</Text>
               <Text style={styles.tipText}>{guide.proTip}</Text>
             </View>
 
@@ -73,7 +75,7 @@ export default function ScreenInfoSheet({ visible, screen, onClose }: Props) {
               style={({ pressed }) => [styles.button, pressed && styles.pressed]}
               accessibilityRole="button"
             >
-              <Text style={styles.buttonText}>Got It!</Text>
+              <Text style={styles.buttonText}>Got it</Text>
             </Pressable>
           </ScrollView>
         </View>
@@ -84,87 +86,84 @@ export default function ScreenInfoSheet({ visible, screen, onClose }: Props) {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{title}</Text>
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
       {children}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' },
+  root: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
     maxHeight: '90%',
     backgroundColor: colors.surface,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: colors.border,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
   },
   handle: {
     alignSelf: 'center',
-    width: 36,
+    width: 32,
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.borderGlow,
-    marginTop: 10,
-    marginBottom: 6,
+    marginTop: spacing.sm,
   },
-  content: { paddingHorizontal: spacing.xl, gap: spacing.md },
+  content: { paddingHorizontal: spacing.lg, gap: spacing.md },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
-  title: { flex: 1, color: '#FFFFFF', fontSize: 20, fontWeight: '700' },
-  close: { color: colors.textMuted, fontSize: 18, padding: 4 },
-  subtitle: { color: colors.primary, fontSize: 14, fontWeight: '500', marginTop: -spacing.sm, marginBottom: spacing.xs },
-  card: {
-    backgroundColor: colors.surfaceVariant,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 14,
-    gap: 6,
+  title: { ...type.title, flex: 1 },
+  closeBtn: { width: 28, height: 28, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  closePressed: { backgroundColor: colors.surfaceVariant },
+  close: { color: colors.textMuted, fontSize: 14 },
+  subtitle: { ...type.caption, marginTop: -spacing.sm },
+  // Sections split by a hairline and a small label, not boxed
+  section: {
+    gap: spacing.xs,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
   },
-  cardTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
-  body: { color: colors.text, fontSize: 14, lineHeight: 20 },
+  sectionTitle: type.label,
+  body: { color: colors.text, fontSize: 14, lineHeight: 21 },
   flex: { flex: 1 },
   exampleBox: {
     marginTop: spacing.xs,
     backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: 'rgba(56,189,248,0.25)',
     borderRadius: radius.sm,
-    padding: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     gap: 2,
   },
-  exampleLabel: { color: colors.primary, fontSize: 11, fontWeight: '700' },
-  exampleText: { color: colors.textMuted, fontSize: 12, lineHeight: 17 },
-  stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 3 },
+  exampleLabel: { color: colors.textMuted, fontSize: 12, fontWeight: '500' },
+  exampleText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
+  stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   stepNum: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(56,189,248,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 16,
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 21,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
   },
-  stepNumText: { color: colors.primary, fontSize: 11, fontWeight: '700' },
   tipCard: {
-    backgroundColor: 'rgba(56,189,248,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(56,189,248,0.3)',
-    borderRadius: radius.md,
-    padding: 14,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.accent,
+    paddingLeft: spacing.md,
+    paddingVertical: 2,
     gap: 2,
   },
-  tipTitle: { color: colors.primary, fontSize: 13, fontWeight: '700' },
-  tipText: { color: colors.text, fontSize: 12, lineHeight: 18 },
+  tipTitle: { color: colors.text, fontSize: 13, fontWeight: '600' },
+  tipText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
   button: {
     backgroundColor: colors.primary,
     borderRadius: radius.sm,
-    paddingVertical: 12,
+    height: 40,
     alignItems: 'center',
-    marginTop: spacing.xs,
+    justifyContent: 'center',
   },
   pressed: { opacity: 0.8 },
-  buttonText: { color: '#000000', fontWeight: '700', fontSize: 15 },
+  buttonText: { color: colors.onPrimary, fontWeight: '600', fontSize: 15 },
 });

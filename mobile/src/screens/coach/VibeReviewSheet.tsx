@@ -9,10 +9,9 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, gradients, radius, spacing } from '../../theme';
+import { colors, radius, spacing, type } from '../../theme';
 import { copyReport, exportReportPdf, shareReport } from './report';
 import type { ChatReportData, VibeReviewSheetProps } from './types';
 
@@ -53,8 +52,8 @@ export default function VibeReviewSheet({ visible, loading, error, report, onClo
   if (loading) {
     content = (
       <View style={styles.stateBlock}>
-        <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={styles.mutedText}>Analyzing conversation vibe...</Text>
+        <ActivityIndicator color={colors.textSecondary} size="small" />
+        <Text style={styles.mutedText}>Reviewing the conversation…</Text>
       </View>
     );
   } else if (error || !report) {
@@ -65,56 +64,51 @@ export default function VibeReviewSheet({ visible, loading, error, report, onClo
     );
   } else {
     const { review } = report;
+    const pct = Math.max(0, Math.min(100, review.score));
     content = (
       <>
-        <View style={styles.scoreBanner}>
-          <View style={styles.scoreTextCol}>
-            <Text style={styles.scoreLabel}>Engagement Vibe Rating</Text>
-            <Text style={styles.feedback}>{review.overall_feedback}</Text>
-          </View>
-          <LinearGradient
-            colors={gradients.primary}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.scoreCircle}
-          >
+        <View style={styles.scoreBlock}>
+          <Text style={styles.scoreLabel}>Vibe score</Text>
+          <View style={styles.scoreRow}>
             <Text style={styles.scoreValue}>{review.score}</Text>
-            <Text style={styles.scoreCaption}>VIBE SCORE</Text>
-          </LinearGradient>
+            <Text style={styles.scoreOutOf}>/ 100</Text>
+          </View>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${pct}%` }]} />
+          </View>
+          <Text style={styles.feedback}>{review.overall_feedback}</Text>
         </View>
 
         <View style={styles.actionRow}>
           <ActionButton
-            label="📄 PDF"
+            label="PDF"
             disabled={busy}
             onPress={() => run(exportReportPdf, undefined, 'Error exporting PDF')}
           />
-          <ActionButton label="📤 Share" disabled={busy} onPress={() => run(shareReport, undefined, 'Error sharing report')} />
+          <ActionButton label="Share" disabled={busy} onPress={() => run(shareReport, undefined, 'Error sharing report')} />
           <ActionButton
-            label="📋 Copy"
+            label="Copy"
             disabled={busy}
-            onPress={() => run(copyReport, 'Report copied to clipboard! 📋', 'Copy failed')}
+            onPress={() => run(copyReport, 'Report copied', 'Copy failed')}
           />
         </View>
 
-        <Text style={styles.sectionTitle}>Line-by-Line Coaching Analysis</Text>
+        <Text style={styles.sectionTitle}>Line by line</Text>
 
         {review.comparisons.length === 0 ? (
-          <Text style={styles.mutedText}>No detailed rewrites required. Excellent conversational flow!</Text>
+          <Text style={[styles.mutedText, styles.emptyText]}>No rewrites needed. The conversation flowed well.</Text>
         ) : (
           review.comparisons.map((item, index) => (
             <View key={index} style={styles.card}>
-              <Text style={[styles.cardLabel, { color: colors.error }]}>Your Input Message</Text>
-              <Text style={styles.cardBody}>{item.original_message}</Text>
+              <Text style={styles.cardLabel}>You wrote</Text>
+              <Text style={[styles.cardBody, styles.cardBodyMuted]}>{item.original_message}</Text>
 
-              <Text style={[styles.cardLabel, styles.cardLabelSpaced, { color: colors.success }]}>
-                Coach Suggested Alternative
-              </Text>
+              <Text style={[styles.cardLabel, styles.cardLabelSpaced]}>Try instead</Text>
               <Text style={[styles.cardBody, styles.cardBodyStrong]}>{item.improved_message}</Text>
 
               <View style={styles.divider} />
 
-              <Text style={[styles.cardLabel, { color: colors.primary }]}>Why this works better:</Text>
+              <Text style={styles.cardLabel}>Why it works</Text>
               <Text style={styles.explanation}>{item.explanation}</Text>
             </View>
           ))
@@ -130,7 +124,7 @@ export default function VibeReviewSheet({ visible, loading, error, report, onClo
         <View style={[styles.sheet, { maxHeight: height * 0.9, paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.handle} />
           <View style={styles.header}>
-            <Text style={styles.title}>🌟 Vibe Review Report</Text>
+            <Text style={styles.title}>Vibe review</Text>
             <Pressable
               onPress={onClose}
               hitSlop={8}
@@ -178,188 +172,188 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: colors.scrim,
   },
   sheet: {
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
   },
   handle: {
     alignSelf: 'center',
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
+    width: 32,
+    height: 3,
+    borderRadius: radius.sm,
+    backgroundColor: colors.borderGlow,
     marginVertical: spacing.sm,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
   },
   title: {
+    ...type.title,
     flex: 1,
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '700',
   },
   closeButton: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeIcon: {
     color: colors.textMuted,
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
   },
   scroll: {
     flexGrow: 0,
   },
   scrollContent: {
-    gap: spacing.lg,
     paddingBottom: spacing.sm,
   },
   stateBlock: {
-    height: 200,
+    paddingVertical: spacing.xxl,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.lg,
+    gap: spacing.md,
   },
   mutedText: {
-    color: colors.textMuted,
+    ...type.caption,
     fontSize: 14,
     lineHeight: 20,
+    color: colors.textMuted,
     textAlign: 'center',
   },
   errorText: {
     color: colors.error,
   },
-  scoreBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceVariant,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.lg,
+  emptyText: {
+    textAlign: 'left',
+    paddingVertical: spacing.sm,
   },
-  scoreTextCol: {
-    flex: 1,
+  scoreBlock: {
+    paddingBottom: spacing.md,
   },
   scoreLabel: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
+    ...type.label,
   },
-  feedback: {
-    color: colors.text,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
-  },
-  scoreCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: spacing.xs,
   },
   scoreValue: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '800',
+    color: colors.text,
+    fontSize: 36,
+    fontWeight: '300',
+    letterSpacing: -1,
+    lineHeight: 40,
   },
-  scoreCaption: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 8,
-    fontWeight: '800',
-    letterSpacing: 0.6,
+  scoreOutOf: {
+    color: colors.textMuted,
+    fontSize: 15,
+    marginLeft: spacing.sm,
+  },
+  progressTrack: {
+    height: 2,
+    backgroundColor: colors.border,
+    marginTop: spacing.sm,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 2,
+    backgroundColor: colors.text,
+  },
+  feedback: {
+    ...type.body,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
   },
   actionRow: {
     flexDirection: 'row',
     gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
   },
   actionButton: {
     flex: 1,
+    height: 32,
     alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: radius.md,
-    borderWidth: 1,
+    justifyContent: 'center',
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.borderGlow,
-    backgroundColor: colors.surfaceElevated,
   },
   actionText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '700',
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '500',
   },
   toast: {
     alignSelf: 'center',
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(52,211,153,0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(52,211,153,0.4)',
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceElevated,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
   },
   toastError: {
-    backgroundColor: 'rgba(251,113,133,0.15)',
-    borderColor: 'rgba(251,113,133,0.4)',
+    borderColor: colors.error,
   },
   toastText: {
-    color: colors.success,
+    color: colors.text,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
   },
+  // Section header: hairline rule plus small uppercase label
   sectionTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    ...type.label,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
   },
+  // Each comparison is a divided row, not a bordered card
   card: {
-    backgroundColor: colors.surfaceVariant,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 14,
-    padding: 14,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
   },
   cardLabel: {
-    fontSize: 11,
-    fontWeight: '700',
+    ...type.label,
+    fontSize: 12,
     marginBottom: 2,
   },
   cardLabelSpaced: {
-    marginTop: 10,
+    marginTop: spacing.sm,
   },
   cardBody: {
-    color: colors.text,
-    fontSize: 14,
-    lineHeight: 20,
+    ...type.body,
+  },
+  cardBodyMuted: {
+    color: colors.textSecondary,
   },
   cardBodyStrong: {
     fontWeight: '500',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-    marginVertical: 10,
+    backgroundColor: colors.divider,
+    marginVertical: spacing.sm,
   },
   explanation: {
-    color: colors.textMuted,
-    fontSize: 12,
-    lineHeight: 17,
+    ...type.caption,
   },
   pressed: {
     opacity: 0.6,

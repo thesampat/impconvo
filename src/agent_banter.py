@@ -63,10 +63,10 @@ def generate_banter_agent(
         topic_res = topic_llm.invoke("Give a single short, realistic social scenario where one person starts a conversation with another (e.g. approaching someone at a cafe, or matched on Hinge). Output ONLY the scenario, under 10 words, no quotes.")
         topic = extract_text_content(topic_res.content).strip().strip('"').strip("'")
 
-    name_a = (persona_a_name or "Alex").strip()
-    name_b = (persona_b_name or "Jordan").strip()
+    name_a = (persona_a_name or "Rohan").strip()
+    name_b = (persona_b_name or "Kiran").strip()
     style_a = (persona_a_style or "cocky, witty, and a little too confident. Loves teasing with self-assurance.").strip()
-    style_b = (persona_b_style or "sarcastic, clever, and dry-humored. Never lets Alex get away with anything.").strip()
+    style_b = (persona_b_style or "sarcastic, clever, and dry-humored. Never lets the other person get away with anything.").strip()
 
 
     history_context = ""
@@ -115,11 +115,11 @@ Rules:
 - Generate exactly {num_turns} exchanges, alternating turns, {first_turn_rule}
 - Each line must be SHORT (under 15 words), punchy, and natural-sounding — {line_style}.
 - Stay in character: each person responds the way a real person in that situation would.
-- When starting a new conversation, the first line must be the literal, natural opening of the scenario, exactly what that person would really say first (e.g. "Excuse me, do you know how to get to 5th Street?" for someone asking directions). No joke, tease or flirting in the first line.
+- When starting a new conversation, the first line must be the literal, natural opening of the scenario, exactly what that person would really say first (e.g. "Excuse me, which way is the metro station?" for someone asking directions). No joke, tease or flirting in the first line.
 - Let the conversation build realistically from that exact starting point: the real purpose of the scenario (directions, the coffee, the match) stays the topic, and wit and banter grow out of it gradually.
 - Use playful teasing, callbacks, light self-deprecation, and confident reversals where they fit.
 - Do NOT use emojis.
-- Standard English ONLY.
+- Both people are young urban Indians: write in natural Indian English, the way they would really talk or text. English words only, no Hindi or Hinglish words, and no exaggerated or stereotyped phrasing.
 - Return a valid JSON object like this:
 {{
   "topic": "{topic}",
@@ -164,8 +164,8 @@ ANALYZE_SCENARIO_PROMPT = """Read this social scenario written by a user and wor
 Scenario: {scenario}
 
 Decide:
-- me_name: a realistic first name for the user. If the scenario does not hint at the user's gender, pick a gender-neutral name.
-- other_name: a realistic first name for the other person that matches what the scenario says about them (e.g. "a girl" -> a female name, "a guy" -> a male name; gender-neutral if unclear).
+- me_name: a realistic Indian first name for the user. If the scenario does not hint at the user's gender, pick a gender-neutral Indian name.
+- other_name: a realistic Indian first name for the other person that matches what the scenario says about them (e.g. "a girl" -> a female name, "a guy" -> a male name; gender-neutral if unclear). Vary the names; do not always pick the most common ones.
 - starter: "me" if the user speaks first (e.g. the user approaches or messages someone), or "other" if the other person speaks first (e.g. someone asks the user for directions).
 - setting: "online" if they are texting or messaging (dating apps, DMs, chats), or "in_person" if they are talking face to face.
 - me_personality and other_personality: the style that best fits how each person would realistically act in this scenario, chosen from exactly one of:
@@ -201,8 +201,8 @@ def analyze_scenario_agent(
     starter = str(result.get("starter", "")).strip().lower()
     setting = str(result.get("setting", "")).strip().lower().replace("-", "_")
     return {
-        "me_name": str(result.get("me_name") or "Alex").strip(),
-        "other_name": str(result.get("other_name") or "Jordan").strip(),
+        "me_name": str(result.get("me_name") or "Rohan").strip(),
+        "other_name": str(result.get("other_name") or "Kiran").strip(),
         "starter": starter if starter in ("me", "other") else "me",
         "setting": setting if setting in ("online", "in_person") else "online",
         "me_personality": me_personality if me_personality in personalities else "cocky",

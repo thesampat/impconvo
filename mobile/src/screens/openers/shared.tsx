@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radius } from '../../theme';
+import { colors, radius, spacing, type } from '../../theme';
 
 interface GenerateButtonProps {
   label: string;
@@ -24,7 +24,7 @@ export function GenerateButton({ label, loading, disabled, onPress }: GenerateBu
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color="#000000" />
+        <ActivityIndicator size="small" color={colors.onPrimary} />
       ) : (
         <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled]}>{label}</Text>
       )}
@@ -38,44 +38,62 @@ export function errorMessage(e: unknown): string {
 
 export const screenStyles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: 16, paddingTop: 14, flexGrow: 1 },
-  title: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
-  subtitle: { color: colors.textMuted, fontSize: 12, marginTop: 2, lineHeight: 17 },
+  content: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    flexGrow: 1,
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
+  },
+  title: { ...type.title },
+  subtitle: { ...type.caption, marginTop: spacing.xs },
   input: {
-    marginTop: 14,
-    backgroundColor: 'rgba(32,32,48,0.35)',
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    color: colors.text,
-    fontSize: 14,
-    lineHeight: 20,
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
+    ...type.body,
+    marginTop: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
     textAlignVertical: 'top',
   },
-  inputFocused: { borderColor: 'rgba(56,189,248,0.5)', backgroundColor: 'rgba(32,32,48,0.45)' },
-  error: { color: colors.error, fontSize: 12, lineHeight: 17, marginTop: 8 },
-  sectionLabel: { color: colors.text, fontSize: 13, fontWeight: '600', marginTop: 16, marginBottom: 8 },
-  list: { gap: 10 },
-  placeholderBox: { flex: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center' },
-  placeholderText: { color: 'rgba(148,163,184,0.6)', fontSize: 12, textAlign: 'center' },
+  inputFocused: { borderColor: colors.textMuted },
+  error: { ...type.caption, color: colors.error, marginTop: spacing.sm },
+  // Section header: a hairline rule with a small uppercase label, no card around the content
+  sectionLabel: {
+    ...type.label,
+    marginTop: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+  },
+  list: {},
+  placeholderBox: {
+    marginTop: spacing.lg,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+  },
+  placeholderText: { ...type.caption, color: colors.textMuted },
 });
 
-export const placeholderTextColor = 'rgba(148,163,184,0.6)';
+export const placeholderTextColor = colors.textMuted;
 
 const styles = StyleSheet.create({
   button: {
-    marginTop: 10,
-    height: 44,
-    borderRadius: radius.md,
+    marginTop: spacing.sm,
+    height: 38,
+    borderRadius: radius.sm,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonDisabled: { backgroundColor: 'rgba(32,32,48,0.5)' },
-  pressed: { opacity: 0.8 },
-  buttonText: { color: '#000000', fontWeight: '700', fontSize: 13 },
+  buttonDisabled: { backgroundColor: colors.surfaceVariant },
+  pressed: { opacity: 0.85 },
+  buttonText: { color: colors.onPrimary, fontWeight: '500', fontSize: 14 },
   buttonTextDisabled: { color: colors.textMuted },
 });

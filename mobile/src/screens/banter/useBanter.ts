@@ -36,8 +36,8 @@ function errorMessage(e: unknown, fallback: string): string {
 export function useBanter() {
   // Setup
   const [topicInput, setTopicInput] = useState('');
-  const [botA, setBotA] = useState<BotConfig>({ name: 'Alex', presetIndex: 2, customStyle: '' });
-  const [botB, setBotB] = useState<BotConfig>({ name: 'Jordan', presetIndex: 0, customStyle: '' });
+  const [botA, setBotA] = useState<BotConfig>({ name: 'Rohan', presetIndex: 2, customStyle: '' });
+  const [botB, setBotB] = useState<BotConfig>({ name: 'Kiran', presetIndex: 0, customStyle: '' });
   const [setting, setSetting] = useState<ConversationSetting>('online');
   const [starter, setStarter] = useState<ConversationStarter>('me');
   const [setupStep, setSetupStep] = useState<SetupStep>('scenario');
@@ -53,8 +53,8 @@ export function useBanter() {
   const [isTyping, setIsTyping] = useState(false);
   const [typingSpeaker, setTypingSpeaker] = useState('');
   const [topic, setTopic] = useState('');
-  const [personaA, setPersonaA] = useState('Alex');
-  const [personaB, setPersonaB] = useState('Jordan');
+  const [personaA, setPersonaA] = useState('Rohan');
+  const [personaB, setPersonaB] = useState('Kiran');
   const [messages, setMessages] = useState<FeedItem[]>([]);
   const [queueSize, setQueueSize] = useState(0);
 
@@ -232,8 +232,8 @@ export function useBanter() {
 
   const start = useCallback(async () => {
     const trimmedTopic = topicInput.trim();
-    const nameA = botA.name.trim() || 'Alex';
-    const nameB = botB.name.trim() || 'Jordan';
+    const nameA = botA.name.trim() || 'Rohan';
+    const nameB = botB.name.trim() || 'Kiran';
     const request: BanterRequest = {
       topic: trimmedTopic || null,
       num_turns: INITIAL_TURNS,

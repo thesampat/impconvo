@@ -1,6 +1,6 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius } from '../../theme';
+import { colors, radius, spacing, type } from '../../theme';
 
 interface Props {
   visible: boolean;
@@ -17,7 +17,7 @@ export default function ResetDialog({
   visible,
   onConfirm,
   onCancel,
-  title = 'Reset Chat Scenario?',
+  title = 'Reset this chat?',
   message = DEFAULT_MESSAGE,
 }: Props) {
   return (
@@ -28,10 +28,18 @@ export default function ResetDialog({
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.body}>{message}</Text>
           <View style={styles.actions}>
-            <Pressable onPress={onCancel} style={styles.button} accessibilityRole="button">
+            <Pressable
+              onPress={onCancel}
+              style={({ pressed }) => [styles.button, styles.cancelButton, pressed && styles.pressed]}
+              accessibilityRole="button"
+            >
               <Text style={styles.cancel}>Cancel</Text>
             </Pressable>
-            <Pressable onPress={onConfirm} style={styles.button} accessibilityRole="button">
+            <Pressable
+              onPress={onConfirm}
+              style={({ pressed }) => [styles.button, styles.confirmButton, pressed && styles.pressed]}
+              accessibilityRole="button"
+            >
               <Text style={styles.confirm}>Reset</Text>
             </Pressable>
           </View>
@@ -44,24 +52,31 @@ export default function ResetDialog({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.scrim,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: spacing.lg,
   },
   card: {
     width: '100%',
     maxWidth: 400,
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 24,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
   },
-  title: { color: '#FFFFFF', fontSize: 20, fontWeight: '700', marginBottom: 12 },
-  body: { color: colors.text, fontSize: 14, lineHeight: 20 },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 20, gap: 8 },
-  button: { paddingHorizontal: 12, paddingVertical: 8 },
-  cancel: { color: colors.textMuted, fontSize: 14, fontWeight: '500' },
-  confirm: { color: colors.error, fontSize: 14, fontWeight: '700' },
+  title: { ...type.title, fontSize: 16, marginBottom: spacing.xs },
+  body: { ...type.caption, fontSize: 14, lineHeight: 20 },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: spacing.lg, gap: spacing.sm },
+  button: {
+    height: 34,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: { borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderGlow },
+  confirmButton: { backgroundColor: colors.primary },
+  pressed: { opacity: 0.8 },
+  cancel: { color: colors.text, fontSize: 14, fontWeight: '500' },
+  confirm: { color: colors.onPrimary, fontSize: 14, fontWeight: '600' },
 });

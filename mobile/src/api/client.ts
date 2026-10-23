@@ -1,11 +1,13 @@
 // Ported from android/app/.../data/api/{ApiConfig,ApiService,RetrofitClient}.kt
 import type {
   AnalyzeScenarioRequest,
+  AdminSettings,
+  AdminSettingsPatch,
+  AdminUsage,
   AnalyzeScenarioResponse,
   BanterRequest,
   BanterResponse,
   ConfigResponse,
-  ConfigSaveRequest,
   GenerateScenarioRequest,
   GenerateScenarioResponse,
   GetOpenersRequest,
@@ -35,6 +37,8 @@ const TIMEOUT_MS = 30_000;
 
 let baseUrl = Platform.OS === 'web' && __DEV__ ? LOCAL_WEB_BASE_URL : DEFAULT_BASE_URL;
 let accessCode = '';
+let deviceId = '';
+let adminCode = '';
 
 export function setBaseUrl(url: string) {
   baseUrl = url.replace(/\/+$/, '');
@@ -44,6 +48,16 @@ export function setAccessCode(code: string) {
   accessCode = code;
 }
 
+// Sent with every request (X-Device-ID) so usage limits apply per install
+export function setDeviceId(id: string) {
+  deviceId = id;
+}
+
+// Sent as X-Admin-Code only while admin is unlocked; pass '' to clear
+export function setAdminCode(code: string) {
+  adminCode = code;
+}
+
 export class ApiError extends Error {
   constructor(message: string, public status?: number) {
     super(message);
@@ -51,11 +65,24 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
+interface RequestOptions {
+  // Overrides the stored admin code for this one request (used to verify a candidate code)
+  adminCode?: string;
+}
+
+async function request<T>(
+  method: 'GET' | 'POST',
+  path: string,
+  body?: unknown,
+  options: RequestOptions = {},
+): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (accessCode) headers['X-Code'] = accessCode;
+  if (deviceId) headers['X-Device-ID'] = deviceId;
+  const admin = options.adminCode ?? adminCode;
+  if (admin) headers['X-Admin-Code'] = admin;
 
   try {
     const res = await fetch(`${baseUrl}/${path}`, {
@@ -86,7 +113,13 @@ async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown):
 
 export const api = {
   getConfig: () => request<ConfigResponse>('GET', 'api/config'),
-  saveConfig: (req: ConfigSaveRequest) => request<ConfigResponse>('POST', 'api/config', req),
+  // Admin endpoints need X-Admin-Code; errors: 401 wrong code, 429 too many attempts, 503 not configured.
+  // Pass `code` to try a candidate code without storing it first.
+  getAdminSettings: (code?: string) =>
+    request<AdminSettings>('GET', 'api/admin/settings', undefined, { adminCode: code }),
+  saveAdminSettings: (patch: AdminSettingsPatch) =>
+    request<AdminSettings>('POST', 'api/admin/settings', patch),
+  getAdminUsage: () => request<AdminUsage>('GET', 'api/admin/usage'),
   sendMessage: (req: SendMessageRequest) => request<SendMessageResponse>('POST', 'api/send-message', req),
   improveMessage: (req: ImproveMessageRequest) =>
     request<ImproveMessageResponse>('POST', 'api/improve-message', req),
@@ -101,3 +134,6 @@ export const api = {
   analyzeScenario: (req: AnalyzeScenarioRequest) =>
     request<AnalyzeScenarioResponse>('POST', 'api/analyze-scenario', req),
 };
+
+// Checks a candidate admin code against the server without storing it; resolves with the settings.
+export const verifyAdminCode = (code: string) => api.getAdminSettings(code);

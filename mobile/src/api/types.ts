@@ -120,13 +120,51 @@ export interface BanterResponse {
   exchanges: BanterExchange[];
 }
 
+// GET api/config is a connection check only
 export interface ConfigResponse {
-  has_key: boolean;
-  model_name: string;
+  status: string;
 }
 
-export interface ConfigSaveRequest {
-  model_name: string;
+// Admin-only settings, changed at runtime on the server (GET/POST api/admin/settings)
+export interface AdminSettings {
+  default_model: string;
+  available_models: string[];
+  device_daily_limit: number;
+  ip_daily_limit: number;
+  global_daily_limit: number;
+  your_device_id: string | null; // this install's id, for ADMIN_DEVICE_IDS on the server
+  device_locked: boolean; // true when admin only works from listed device ids
+}
+
+export type AdminSettingsPatch = Partial<
+  Pick<AdminSettings, 'default_model' | 'device_daily_limit' | 'ip_daily_limit' | 'global_daily_limit'>
+>;
+
+export interface UsageRow {
+  id: string;
+  tokens: number;
+  requests: number;
+}
+
+// Today's usage (GET api/admin/usage)
+export interface AdminUsage {
+  usage_date: string;
+  global_tokens: number;
+  global_requests: number;
+  global_limit: number;
+  device_limit: number;
+  ip_limit: number;
+  devices: UsageRow[];
+  ips: UsageRow[];
+  model: string;
+  provider_daily_requests: number | null; // Google's requests/day cap for the model, null if unknown
+  history: { date: string; tokens: number; requests: number }[]; // most recent days first
+  all_time_tokens: number;
+  all_time_requests: number;
+  admin_tokens: number; // the owner's own usage today
+  admin_requests: number;
+  admin_all_time_tokens: number;
+  admin_all_time_requests: number;
 }
 
 export interface GenerateScenarioRequest {

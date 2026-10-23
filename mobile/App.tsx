@@ -1,28 +1,25 @@
 import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppShell from './src/components/AppShell';
 import { SettingsProvider } from './src/state/SettingsContext';
 import { colors } from './src/theme';
 
+// Web only: swap the browser's default (orange/blue) focus ring for the palette's accent border
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `input:focus, textarea:focus { outline: none; border-color: ${colors.accent} !important; }`;
+  document.head.appendChild(style);
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
       <SettingsProvider>
         <View style={styles.root}>
-          {/* Faint purple glow behind everything */}
-          <LinearGradient
-            colors={['rgba(158,122,255,0.14)', 'rgba(56,189,248,0.04)', 'transparent']}
-            locations={[0, 0.35, 0.7]}
-            start={{ x: 0.2, y: 0 }}
-            end={{ x: 0.8, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
           <AppShell />
-          <StatusBar style="light" />
+          <StatusBar style="dark" />
         </View>
       </SettingsProvider>
     </SafeAreaProvider>

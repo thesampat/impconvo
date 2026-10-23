@@ -1,8 +1,7 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, gradients } from '../../theme';
+import { colors, radius, spacing } from '../../theme';
 import { useDoubleTap } from './useDoubleTap';
 
 interface Props {
@@ -24,17 +23,21 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
   const onInputPress = useDoubleTap(suggestIfText);
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: 10 + bottomInset }]}>
+    <View style={[styles.wrapper, { paddingBottom: spacing.md + bottomInset }]}>
       <View style={styles.capsule}>
-        <Pressable onPress={onSuggest} style={styles.suggestButton} accessibilityLabel="Rewrite suggestions">
-          <Text style={styles.suggestIcon}>✨</Text>
+        <Pressable
+          onPress={onSuggest}
+          style={({ pressed }) => [styles.suggestButton, pressed && styles.pressed]}
+          accessibilityLabel="Rewrite suggestions"
+        >
+          <Text style={styles.suggestText}>Rewrite</Text>
         </Pressable>
 
         <TextInput
           value={value}
           onChangeText={onChangeText}
           onPressIn={onInputPress}
-          placeholder="Type response..."
+          placeholder="Type a response"
           placeholderTextColor={colors.textMuted}
           multiline
           style={styles.input}
@@ -47,14 +50,15 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
           accessibilityLabel="Send"
           accessibilityState={{ disabled: !canSend }}
         >
-          <LinearGradient
-            colors={hasText ? gradients.primary : [colors.surfaceVariant, colors.surfaceVariant]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.sendButton, isLoading && hasText && styles.sendBusy]}
+          <View
+            style={[
+              styles.sendButton,
+              hasText ? styles.sendActive : styles.sendInactive,
+              isLoading && hasText && styles.sendBusy,
+            ]}
           >
-            <Text style={[styles.sendIcon, !hasText && styles.sendIconDisabled]}>➤</Text>
-          </LinearGradient>
+            <Text style={[styles.sendIcon, !hasText && styles.sendIconDisabled]}>↑</Text>
+          </View>
         </Pressable>
       </View>
     </View>
@@ -62,41 +66,47 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
 }
 
 const styles = StyleSheet.create({
-  wrapper: { paddingHorizontal: 12, paddingTop: 10 },
+  wrapper: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+    backgroundColor: colors.background,
+  },
+  // Flat row on the page background; only the text field keeps a hairline border
   capsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(56,189,248,0.35)',
-    backgroundColor: 'rgba(22,22,34,0.95)',
-    shadowColor: colors.primary,
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
   },
   suggestButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(56,189,248,0.12)',
+    height: 32,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  suggestIcon: { fontSize: 17 },
+  suggestText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
+  pressed: { opacity: 0.7 },
   input: {
     flex: 1,
-    marginHorizontal: 8,
-    paddingVertical: 8,
+    marginHorizontal: spacing.sm,
+    minHeight: 32,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs + 2,
     maxHeight: 84,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
+    backgroundColor: colors.surface,
     color: colors.text,
-    fontSize: 14,
+    fontSize: 15,
   },
-  sendButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  sendButton: { width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  sendActive: { backgroundColor: colors.primary },
+  sendInactive: { backgroundColor: colors.surfaceVariant },
   sendBusy: { opacity: 0.5 },
-  sendIcon: { color: '#FFFFFF', fontSize: 16 },
+  sendIcon: { color: colors.onPrimary, fontSize: 17, fontWeight: '600' },
   sendIconDisabled: { color: colors.textMuted },
 });

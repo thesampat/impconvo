@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, radius } from '../../theme';
+import { colors, radius, spacing, type } from '../../theme';
 import { BANTER_PRESETS, CUSTOM_PRESET_INDEX, withAlpha } from './presets';
 import type { BotConfig } from './useBanter';
 
@@ -21,24 +21,24 @@ export default function PersonaConfigCard({ label, accentColor, config, onChange
   const update = (patch: Partial<BotConfig>) => onChange({ ...config, ...patch });
 
   return (
-    <View style={styles.card}>
+    <View>
       <View style={styles.headerRow}>
         <View style={[styles.dot, { backgroundColor: accentColor }]} />
-        <Text style={[styles.label, { color: accentColor }]}>{label}</Text>
+        <Text style={styles.label}>{label}</Text>
       </View>
 
       <TextInput
         value={config.name}
         onChangeText={(name) => update({ name })}
-        placeholder="Name (e.g. Alex)"
+        placeholder="Name (e.g. Rohan)"
         placeholderTextColor={colors.textMuted}
         style={styles.input}
-        selectionColor={accentColor}
+        selectionColor={colors.accent}
         autoCorrect={false}
         returnKeyType="done"
       />
 
-      <Text style={styles.styleLabel}>Personality Style:</Text>
+      <Text style={styles.styleLabel}>Personality</Text>
       <View style={styles.chipGrid}>
         {CHIP_ROWS.map((row, r) => (
           <View key={r} style={styles.chipRow}>
@@ -50,15 +50,9 @@ export default function PersonaConfigCard({ label, accentColor, config, onChange
                   onPress={() => update({ presetIndex: idx })}
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
-                  style={[
-                    styles.chip,
-                    selected && { backgroundColor: withAlpha(accentColor, 0.22), borderColor: accentColor },
-                  ]}
+                  style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text
-                    style={[styles.chipText, selected && { color: accentColor, fontWeight: '700' }]}
-                    numberOfLines={1}
-                  >
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]} numberOfLines={1}>
                     {chipLabel}
                   </Text>
                 </Pressable>
@@ -75,7 +69,7 @@ export default function PersonaConfigCard({ label, accentColor, config, onChange
           placeholder="e.g. passive-aggressive sommelier who despises cheap wine"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, styles.customInput]}
-          selectionColor={accentColor}
+          selectionColor={colors.accent}
           returnKeyType="done"
         />
       )}
@@ -84,37 +78,34 @@ export default function PersonaConfigCard({ label, accentColor, config, onChange
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: withAlpha(colors.surfaceVariant, 0.35),
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
-  label: { fontSize: 13, fontWeight: '700' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+  dot: { width: 6, height: 6, borderRadius: 3, marginRight: spacing.sm },
+  label: { ...type.label },
   input: {
-    minHeight: 46,
-    borderRadius: 10,
-    backgroundColor: withAlpha(colors.surface, 0.5),
+    minHeight: 38,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
+    backgroundColor: colors.surface,
     color: colors.text,
-    fontSize: 13,
-    fontWeight: '500',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    fontSize: 15,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  customInput: { marginTop: 10, fontSize: 12, borderRadius: radius.sm },
-  styleLabel: { color: colors.textMuted, fontSize: 11, fontWeight: '500', marginTop: 10, marginBottom: 6 },
-  chipGrid: { gap: 6 },
-  chipRow: { flexDirection: 'row', gap: 6 },
+  customInput: { marginTop: spacing.sm, fontSize: 14 },
+  styleLabel: { ...type.caption, marginTop: spacing.md, marginBottom: spacing.xs },
+  chipGrid: { gap: spacing.xs },
+  chipRow: { flexDirection: 'row', gap: spacing.xs },
   chip: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 5,
+    paddingHorizontal: spacing.xs,
     borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    backgroundColor: withAlpha(colors.surface, 0.5),
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
   },
-  chipText: { color: colors.textMuted, fontSize: 11 },
+  chipSelected: { borderColor: colors.accent, backgroundColor: withAlpha(colors.accent, 0.08) },
+  chipText: { color: colors.textSecondary, fontSize: 13 },
+  chipTextSelected: { color: colors.accent, fontWeight: '500' },
 });

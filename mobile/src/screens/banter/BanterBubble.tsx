@@ -1,58 +1,39 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, gradients, radius } from '../../theme';
+import { colors, radius } from '../../theme';
 import { withAlpha } from './presets';
 
 function bubbleCorners(isMine: boolean) {
   return {
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    borderBottomLeftRadius: isMine ? 18 : 4,
-    borderBottomRightRadius: isMine ? 4 : 18,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    borderBottomLeftRadius: isMine ? radius.lg : radius.sm,
+    borderBottomRightRadius: isMine ? radius.sm : radius.lg,
   };
 }
 
 export function BanterChatBubble({ speaker, text, isMine }: { speaker: string; text: string; isMine: boolean }) {
   return (
     <View style={[styles.row, isMine && styles.rowEnd]}>
-      <LinearGradient
-        colors={isMine ? gradients.outgoingBubble : gradients.incomingBubble}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[
-          styles.bubble,
-          bubbleCorners(isMine),
-          { borderColor: isMine ? colors.borderGlow : colors.border },
-        ]}
-      >
-        <View
-          style={[
-            styles.badge,
-            { backgroundColor: isMine ? withAlpha(colors.accentPurple, 0.25) : withAlpha(colors.primary, 0.2) },
-          ]}
-        >
-          <Text style={[styles.badgeText, { color: isMine ? '#FFFFFF' : colors.primary }]}>
-            {isMine ? `⚡ ${speaker}` : `🔥 ${speaker}`}
-          </Text>
+      <View style={[styles.column, isMine && styles.columnEnd]}>
+        <Text style={styles.speaker} numberOfLines={1}>
+          {speaker}
+        </Text>
+        <View style={[styles.bubble, bubbleCorners(isMine), isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
+          <Text style={[styles.text, isMine ? styles.textMine : styles.textTheirs]}>{text}</Text>
         </View>
-        <Text style={[styles.text, isMine && styles.textB]}>{text}</Text>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
 
 export function BanterTypingBubble({ speaker, isMine }: { speaker: string; isMine: boolean }) {
-  const accent = isMine ? colors.accentPurple : colors.primary;
   return (
     <View style={[styles.row, isMine && styles.rowEnd]}>
-      <LinearGradient
-        colors={gradients.incomingBubble}
-        style={[styles.typing, bubbleCorners(isMine), { borderColor: withAlpha(accent, 0.4) }]}
-      >
-        <Text style={[styles.typingText, { color: accent }]}>{speaker} is typing</Text>
-        <ActivityIndicator size="small" color={accent} style={styles.typingSpinner} />
-      </LinearGradient>
+      <View style={[styles.typing, bubbleCorners(isMine)]}>
+        <Text style={styles.typingText}>{speaker} is typing</Text>
+        <ActivityIndicator size="small" color={colors.textMuted} style={styles.typingSpinner} />
+      </View>
     </View>
   );
 }
@@ -68,39 +49,37 @@ export function SystemErrorBubble({ text }: { text: string }) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'flex-start' },
   rowEnd: { justifyContent: 'flex-end' },
-  bubble: {
-    maxWidth: '82%',
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    overflow: 'hidden',
+  column: { maxWidth: '80%', alignItems: 'flex-start' },
+  columnEnd: { alignItems: 'flex-end' },
+  speaker: { color: colors.textMuted, fontSize: 12, fontWeight: '500', marginBottom: 2, marginHorizontal: 2 },
+  bubble: { paddingHorizontal: 12, paddingVertical: 8 },
+  bubbleMine: { backgroundColor: colors.bubbleOutgoing },
+  bubbleTheirs: {
+    backgroundColor: colors.bubbleIncoming,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginBottom: 4,
-  },
-  badgeText: { fontSize: 10, fontWeight: '700' },
-  text: { color: colors.text, fontSize: 14, lineHeight: 20 },
-  textB: { color: '#FFFFFF' },
+  text: { fontSize: 15, lineHeight: 21 },
+  textMine: { color: colors.onBubbleOutgoing },
+  textTheirs: { color: colors.onBubbleIncoming },
   typing: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    paddingHorizontal: 14,
+    backgroundColor: colors.bubbleIncoming,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderGlow,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    overflow: 'hidden',
   },
-  typingText: { fontSize: 12, fontWeight: '500' },
-  typingSpinner: { marginLeft: 8, transform: [{ scale: 0.6 }] },
+  typingText: { color: colors.textMuted, fontSize: 13 },
+  typingSpinner: { marginLeft: 6, transform: [{ scale: 0.6 }] },
   error: {
-    borderRadius: radius.md,
-    backgroundColor: withAlpha(colors.error, 0.15),
-    borderWidth: 1,
-    borderColor: withAlpha(colors.error, 0.3),
-    padding: 12,
+    borderRadius: radius.sm,
+    backgroundColor: withAlpha(colors.error, 0.06),
+    borderLeftWidth: 2,
+    borderColor: colors.error,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  errorText: { color: colors.error, fontSize: 12, textAlign: 'center' },
+  errorText: { color: colors.error, fontSize: 13, lineHeight: 18 },
 });
