@@ -15,6 +15,8 @@ try:
 except Exception:
     pass
 
+logger = logging.getLogger("improveconvo")
+
 # Filter the specific AFC warning if emitted by google_genai.models logger
 logging.getLogger("google_genai.models").addFilter(
     lambda record: "Direct use of automatic function calling (AFC)" not in record.getMessage()

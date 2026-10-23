@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -84,6 +85,15 @@ async def token_restriction_middleware(request: Request, call_next):
             
     response = await call_next(request)
     return response
+
+# Let the Expo web build (served from localhost during development) call the API.
+# Added after the token middleware so it wraps it and 429s still carry CORS headers.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def get_root():

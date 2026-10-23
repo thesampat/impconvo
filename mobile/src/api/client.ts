@@ -20,12 +20,18 @@ import type {
   VibeReviewResponse,
 } from './types';
 
+import { Platform } from 'react-native';
+
 // Change this whenever you want to point the app at a different backend.
 export const DEFAULT_BASE_URL = 'https://improveconvo-929363816987.asia-south1.run.app';
 
+// The web build in development talks to the backend running locally
+// (`uv run uvicorn src.main:app --port 8000`), which allows localhost origins.
+const LOCAL_WEB_BASE_URL = 'http://localhost:8000';
+
 const TIMEOUT_MS = 30_000;
 
-let baseUrl = DEFAULT_BASE_URL;
+let baseUrl = Platform.OS === 'web' && __DEV__ ? LOCAL_WEB_BASE_URL : DEFAULT_BASE_URL;
 let accessCode = '';
 
 export function setBaseUrl(url: string) {
