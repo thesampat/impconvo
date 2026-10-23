@@ -79,6 +79,9 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
   const [locking, setLocking] = useState(false);
   const [refreshingUsage, setRefreshingUsage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  // All admin sections live in this one popup; the tab starts where the user opened it
+  const [tab, setTab] = useState<AdminSection>(section);
 
   // Fresh data and a clean form every time the dialog opens
   useEffect(() => {
@@ -88,9 +91,11 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
     setError(null);
     setSaving(false);
     setLocking(false);
+    setNotice(null);
+    setTab(section);
     refreshAdminSettings().catch(() => {});
     refreshAdminUsage().catch(() => {});
-  }, [visible, refreshAdminSettings, refreshAdminUsage]);
+  }, [visible, section, refreshAdminSettings, refreshAdminUsage]);
 
   // Initialise (or re-sync, while untouched) the form from the server values
   useEffect(() => {
@@ -100,14 +105,14 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
   const edit = (patch: Partial<Draft>) => {
     dirty.current = true;
     setError(null);
+    setNotice(null);
     setDraft((d) => (d ? { ...d, ...patch } : d));
   };
 
   const statusColor = isConnected ? c.success : c.error;
   const models = adminSettings?.available_models ?? [];
   const invalid = draft ? LIMIT_FIELDS.some((f) => parseLimit(draft[f.key]) === null) : false;
-  const editable = section === 'model' || section === 'limits';
-  const title = ADMIN_SECTIONS.find((x) => x.id === section)?.title ?? 'Admin';
+  const editable = tab === 'model' || tab === 'limits';
 
   const save = async () => {
     if (!draft || !adminSettings || invalid) return;
@@ -118,7 +123,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
       if (n !== null && n !== adminSettings[f.key]) patch[f.key] = n;
     }
     if (Object.keys(patch).length === 0) {
-      onClose();
+      setNotice('No changes to save');
       return;
     }
     setSaving(true);
@@ -126,11 +131,20 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
     try {
       await saveAdminSettings(patch);
       setSaving(false);
-      onClose();
+      // Let the form follow the saved server values again
+      dirty.current = false;
+      setNotice('Saved');
     } catch (e) {
       setSaving(false);
       setError(e instanceof Error && e.message ? e.message : "Couldn't save settings.");
     }
+  };
+
+  const undo = () => {
+    dirty.current = false;
+    setError(null);
+    setNotice(null);
+    if (adminSettings) setDraft(draftFrom(adminSettings));
   };
 
   const lock = async () => {
@@ -159,11 +173,10 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView style={styles.root} behavior="padding">
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close admin settings" />
         <View style={styles.dialog}>
           <View style={styles.headerRow}>
-            <Text style={styles.title}>{title}</Text>
-            {section === 'usage' || section === 'limits' ? (
+            <Text style={styles.title}>Admin</Text>
+            {tab === 'usage' || tab === 'limits' ? (
               <Pressable
                 onPress={refreshUsage}
                 disabled={refreshingUsage}
@@ -190,13 +203,30 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
             </Pressable>
           </View>
 
+          <View style={styles.tabs} accessibilityRole="tablist">
+            {ADMIN_SECTIONS.map((x) => {
+              const active = x.id === tab;
+              return (
+                <Pressable
+                  key={x.id}
+                  onPress={() => setTab(x.id)}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  style={({ pressed }) => [styles.tab, active && styles.tabActive, pressed && !active && styles.closePressed]}
+                >
+                  <Text style={[styles.tabText, active && styles.tabTextActive]}>{x.title}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
           <ScrollView
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {section === 'usage' ? <AdminUsageSection usage={adminUsage} /> : null}
+            {tab === 'usage' ? <AdminUsageSection usage={adminUsage} /> : null}
 
             {editable && !draft ? (
               <View style={styles.loading}>
@@ -204,7 +234,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
               </View>
             ) : null}
 
-            {section === 'model' && draft ? (
+            {tab === 'model' && draft ? (
               <>
                 <Text style={styles.label}>Model for everyone</Text>
                 <View>
@@ -237,7 +267,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
               </>
             ) : null}
 
-            {section === 'limits' && draft ? (
+            {tab === 'limits' && draft ? (
               <>
                 <Text style={styles.label}>Daily limits (tokens)</Text>
                 <View>
@@ -270,7 +300,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
               </>
             ) : null}
 
-            {section === 'device' ? (
+            {tab === 'device' ? (
               <>
             <Text style={styles.label}>Connection</Text>
             <View style={styles.statusRow}>
@@ -321,16 +351,17 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
           </ScrollView>
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
+          {notice && !error ? <Text style={styles.notice}>{notice}</Text> : null}
 
           {editable ? (
             <View style={styles.actions}>
               <View style={styles.actionsSpacer} />
               <Pressable
-                onPress={onClose}
+                onPress={undo}
                 style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}
                 accessibilityRole="button"
               >
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text style={styles.cancelText}>Undo changes</Text>
               </Pressable>
               <Pressable
                 onPress={save}
@@ -373,6 +404,19 @@ const useStyles = makeStyles((c, t) => ({
     padding: spacing.lg,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+  // Segmented tabs: one popup holds every admin section
+  tabs: {
+    flexDirection: 'row',
+    padding: 2,
+    marginBottom: spacing.md,
+    borderRadius: radius.sm,
+    backgroundColor: c.surfaceVariant,
+  },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: radius.sm },
+  tabActive: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.borderGlow },
+  tabText: { color: c.textMuted, fontSize: 13, fontWeight: '500' },
+  tabTextActive: { color: c.text },
+  notice: { color: c.success, fontSize: 13, marginTop: spacing.sm },
   headerRefresh: { marginRight: spacing.xs },
   scroll: { flexGrow: 0, flexShrink: 1 },
   scrollContent: { paddingBottom: spacing.xs },

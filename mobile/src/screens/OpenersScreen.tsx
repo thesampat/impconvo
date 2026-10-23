@@ -3,7 +3,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import {
   Image,
-  KeyboardAvoidingView,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import KeyboardAware from '../components/KeyboardAware';
 import { api } from '../api/client';
 import type { OpenerItem } from '../api/types';
 import { makeStyles, radius, spacing } from '../theme';
@@ -80,7 +80,7 @@ export default function OpenersScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior="padding">
+    <KeyboardAware style={s.flex}>
       <ScrollView
         contentContainerStyle={[s.content, { paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
@@ -144,7 +144,7 @@ export default function OpenersScreen() {
         )}
       </ScrollView>
       <CopyToast visible={toastVisible} />
-    </KeyboardAvoidingView>
+    </KeyboardAware>
   );
 }
 

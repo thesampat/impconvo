@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SCREENS, type ScreenId } from '../screens/types';
 import { useSettings } from '../state/SettingsContext';
 import { useTheme } from '../state/ThemeContext';
-import { ADMIN_SECTIONS, type AdminSection } from './SettingsDialog';
+import { type AdminSection } from './SettingsDialog';
 import { THEMES, makeStyles, radius, spacing, useColors } from '../theme';
 
 const DRAWER_WIDTH = 310;
@@ -146,17 +146,15 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
           <>
             <Text style={styles.sectionLabel}>Admin</Text>
             <View style={styles.nav}>
-              {ADMIN_SECTIONS.map((a) => (
-                <Pressable
-                  key={a.id}
-                  onPress={() => onAdmin(a.id)}
-                  accessibilityRole="button"
-                  style={({ pressed }) => [styles.navItem, pressed && styles.pressed]}
-                >
-                  <View style={styles.activeBar} />
-                  <Text style={styles.navText}>{a.title}</Text>
-                </Pressable>
-              ))}
+              {/* One entry: the admin popup has its own tabs for Usage, Model, Limits and Device */}
+              <Pressable
+                onPress={() => onAdmin('usage')}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.navItem, pressed && styles.pressed]}
+              >
+                <View style={styles.activeBar} />
+                <Text style={styles.navText}>Admin panel</Text>
+              </Pressable>
             </View>
           </>
         )}

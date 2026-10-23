@@ -3,7 +3,6 @@ import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  KeyboardAvoidingView,
   type ListRenderItem,
   Pressable,
   ScrollView,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import KeyboardAware, { useKeyboardShown } from '../components/KeyboardAware';
 import type { ConversationSetting, ConversationStarter } from '../api/types';
 import { makeStyles, radius, spacing, useColors } from '../theme';
 import { BanterChatBubble, BanterTypingBubble, SystemErrorBubble } from './banter/BanterBubble';
@@ -55,7 +55,7 @@ const ME_MODE_OPTIONS: { id: MeMode; label: string }[] = [
 function SetupView({ banter }: { banter: Banter }) {
   const styles = useStyles();
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior="padding">
+    <KeyboardAware style={styles.flex}>
       <ScrollView
         contentContainerStyle={styles.setupContent}
         keyboardShouldPersistTaps="handled"
@@ -67,7 +67,7 @@ function SetupView({ banter }: { banter: Banter }) {
         </View>
         {banter.setupStep === 'scenario' ? <ScenarioStep banter={banter} /> : <DetailsStep banter={banter} />}
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAware>
   );
 }
 
@@ -254,6 +254,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<FlatList<FeedItem>>(null);
   const insets = useSafeAreaInsets();
+  const keyboardShown = useKeyboardShown();
   const coach = useCoachTools({
     scenario: banter.topic,
     setting: banter.setting,
@@ -303,7 +304,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   );
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior="padding">
+    <KeyboardAware style={styles.flex}>
       <View style={styles.header}>
         <Pressable
           onPress={() => setExpanded((v) => !v)}
@@ -378,7 +379,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
           onSend={send}
           onSuggest={() => coach.openSuggestions(draft)}
           isLoading={isLoading}
-          bottomInset={insets.bottom}
+          bottomInset={keyboardShown ? 0 : insets.bottom}
         />
       ) : (
         <PlaybackControls
@@ -421,7 +422,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
           banter.reset();
         }}
       />
-    </KeyboardAvoidingView>
+    </KeyboardAware>
   );
 }
 

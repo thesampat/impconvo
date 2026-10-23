@@ -1,8 +1,9 @@
 // Ported from android/app/.../ui/screens/MisinterpretScreen.kt (+ copy/toast and partner quote from src/static/misinterpret.html)
 import { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, Text, TextInput, View } from 'react-native';
+import { ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import KeyboardAware from '../components/KeyboardAware';
 import { api } from '../api/client';
 import type { MisinterpretResponse } from '../api/types';
 import { spacing } from '../theme';
@@ -42,7 +43,7 @@ export default function MisinterpretScreen() {
   const items = result?.misinterpretations ?? [];
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior="padding">
+    <KeyboardAware style={s.flex}>
       <ScrollView
         contentContainerStyle={[s.content, { paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
@@ -89,6 +90,6 @@ export default function MisinterpretScreen() {
         )}
       </ScrollView>
       <CopyToast visible={toastVisible} />
-    </KeyboardAvoidingView>
+    </KeyboardAware>
   );
 }
