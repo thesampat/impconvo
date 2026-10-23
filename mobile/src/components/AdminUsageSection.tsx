@@ -1,7 +1,7 @@
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import type { AdminUsage } from '../state/SettingsContext';
-import { colors, radius, spacing } from '../theme';
+import { makeStyles, radius, spacing } from '../theme';
 
 const MAX_ROWS = 5;
 
@@ -15,6 +15,7 @@ export function formatCount(n: number): string {
 type Entry = AdminUsage['devices'][number];
 
 function TopList({ title, entries, shorten }: { title: string; entries: Entry[]; shorten?: boolean }) {
+  const styles = useStyles();
   const top = [...entries].sort((a, b) => b.tokens - a.tokens).slice(0, MAX_ROWS);
   if (top.length === 0) return null;
   return (
@@ -36,6 +37,7 @@ function TopList({ title, entries, shorten }: { title: string; entries: Entry[];
 }
 
 function Meter({ value, max }: { value: number; max: number }) {
+  const styles = useStyles();
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
     <View style={styles.progressTrack}>
@@ -53,6 +55,7 @@ function formatPercent(value: number, max: number): string {
 
 /** Chunky usage bar; anything above zero always shows at least a sliver */
 function Bar({ value, max }: { value: number; max: number }) {
+  const styles = useStyles();
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   const shown = value > 0 ? Math.max(pct, 1.5) : 0;
   return (
@@ -64,6 +67,7 @@ function Bar({ value, max }: { value: number; max: number }) {
 
 /** Grey placeholder rows while usage loads */
 function UsageSkeleton() {
+  const styles = useStyles();
   return (
     <View>
       {[0, 1, 2, 3].map((i) => (
@@ -81,6 +85,7 @@ function UsageSkeleton() {
 
 /** Admin home: Google's daily limit, how much of it everyone used today, and how much the owner used */
 export default function AdminUsageSection({ usage }: { usage: AdminUsage | null }) {
+  const styles = useStyles();
   if (!usage) {
     return <UsageSkeleton />;
   }
@@ -156,6 +161,7 @@ export default function AdminUsageSection({ usage }: { usage: AdminUsage | null 
 
 /** Limits view: Google's daily cap for the current model and who used the most today */
 export function AdminTrafficSection({ usage }: { usage: AdminUsage | null }) {
+  const styles = useStyles();
   if (!usage) {
     return <Text style={styles.empty}>Loading usage...</Text>;
   }
@@ -187,22 +193,22 @@ export function AdminTrafficSection({ usage }: { usage: AdminUsage | null }) {
   );
 }
 
-const styles = StyleSheet.create({
-  empty: { color: colors.textMuted, fontSize: 13, paddingVertical: spacing.xs },
+const useStyles = makeStyles((c, t) => ({
+  empty: { color: c.textMuted, fontSize: 13, paddingVertical: spacing.xs },
   // Same thin line as the vibe score in VibeReviewSheet
   progressTrack: {
     height: 2,
     borderRadius: 1,
-    backgroundColor: colors.border,
+    backgroundColor: c.border,
     marginTop: spacing.sm,
     overflow: 'hidden',
   },
-  progressFill: { height: 2, backgroundColor: colors.text },
-  meta: { color: colors.textMuted, fontSize: 13, marginTop: spacing.xs },
+  progressFill: { height: 2, backgroundColor: c.text },
+  meta: { color: c.textMuted, fontSize: 13, marginTop: spacing.xs },
   // Flat list: a small title then hairline-separated rows, no box
   list: { marginTop: spacing.md },
   listTitle: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 12,
     fontWeight: '500',
     paddingBottom: spacing.xs,
@@ -213,29 +219,29 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.sm,
   },
-  rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.divider },
+  rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.divider },
   rowId: {
-    color: colors.text,
+    color: c.text,
     fontSize: 13,
     fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
     minWidth: 80,
   },
-  rowMeta: { flex: 1, color: colors.textMuted, fontSize: 12 },
-  stat: { paddingVertical: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.divider },
+  rowMeta: { flex: 1, color: c.textMuted, fontSize: 12 },
+  stat: { paddingVertical: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.divider },
   statRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
-  statLabel: { color: colors.text, fontSize: 15 },
+  statLabel: { color: c.text, fontSize: 15 },
   statLabelCol: { flexShrink: 1 },
-  footnote: { color: colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: spacing.md },
+  footnote: { color: c.textMuted, fontSize: 12, lineHeight: 17, marginTop: spacing.md },
   statValues: { alignItems: 'flex-end' },
-  statValue: { color: colors.text, fontSize: 15, fontWeight: '500', fontVariant: ['tabular-nums'] },
-  statOf: { color: colors.textMuted, fontWeight: '400' },
-  statMeta: { color: colors.textMuted, fontSize: 13, marginTop: 2 },
-  barTrack: { height: 6, borderRadius: 3, backgroundColor: colors.surfaceVariant, marginTop: spacing.sm, overflow: 'hidden' },
-  barFill: { height: 6, borderRadius: 3, backgroundColor: colors.accent },
-  skeleton: { height: 14, borderRadius: radius.sm, backgroundColor: colors.surfaceVariant },
+  statValue: { color: c.text, fontSize: 15, fontWeight: '500', fontVariant: ['tabular-nums'] },
+  statOf: { color: c.textMuted, fontWeight: '400' },
+  statMeta: { color: c.textMuted, fontSize: 13, marginTop: 2 },
+  barTrack: { height: 6, borderRadius: 3, backgroundColor: c.surfaceVariant, marginTop: spacing.sm, overflow: 'hidden' },
+  barFill: { height: 6, borderRadius: 3, backgroundColor: c.accent },
+  skeleton: { height: 14, borderRadius: radius.sm, backgroundColor: c.surfaceVariant },
   skeletonBar: { opacity: 0.7 },
-  period: { color: colors.textSecondary, fontSize: 13, fontWeight: '500', paddingBottom: spacing.sm },
-  blockTitle: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
-  blockValue: { color: colors.text, fontSize: 14, marginTop: 2 },
-  rowTokens: { color: colors.text, fontSize: 13, fontWeight: '500', textAlign: 'right', minWidth: 72, fontVariant: ['tabular-nums'] },
-});
+  period: { color: c.textSecondary, fontSize: 13, fontWeight: '500', paddingBottom: spacing.sm },
+  blockTitle: { color: c.textSecondary, fontSize: 13, fontWeight: '500' },
+  blockValue: { color: c.text, fontSize: 14, marginTop: 2 },
+  rowTokens: { color: c.text, fontSize: 13, fontWeight: '500', textAlign: 'right', minWidth: 72, fontVariant: ['tabular-nums'] },
+}));

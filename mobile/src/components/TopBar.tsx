@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, type } from '../theme';
+import { makeStyles, radius, spacing, useColors } from '../theme';
 
 interface Props {
   title: string;
@@ -15,6 +15,8 @@ interface Props {
 }
 
 export default function TopBar({ title, isConnected, isAdmin, onMenu, onRetest, onInfo, onSettings }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={styles.bar}>
       <IconButton onPress={onMenu} a11y="Open menu">
@@ -26,7 +28,7 @@ export default function TopBar({ title, isConnected, isAdmin, onMenu, onRetest, 
         </Text>
         {isAdmin && (
           <Pressable onPress={onRetest} hitSlop={12} accessibilityRole="button" accessibilityLabel="Re-test API connection">
-            <View style={[styles.dot, { backgroundColor: isConnected ? colors.success : colors.error }]} />
+            <View style={[styles.dot, { backgroundColor: isConnected ? c.success : c.error }]} />
           </Pressable>
         )}
       </View>
@@ -43,6 +45,7 @@ export default function TopBar({ title, isConnected, isAdmin, onMenu, onRetest, 
 }
 
 function IconButton({ onPress, a11y, children }: { onPress: () => void; a11y: string; children: ReactNode }) {
+  const styles = useStyles();
   return (
     <Pressable
       onPress={onPress}
@@ -58,6 +61,7 @@ function IconButton({ onPress, a11y, children }: { onPress: () => void; a11y: st
 
 // Simple line glyphs drawn with Views so they render identically on web, iOS and Android (no emoji fallback)
 function MenuGlyph() {
+  const styles = useStyles();
   return (
     <View style={styles.menuGlyph}>
       <View style={styles.line} />
@@ -67,6 +71,7 @@ function MenuGlyph() {
 }
 
 function InfoGlyph() {
+  const styles = useStyles();
   return (
     <View style={styles.infoGlyph}>
       <Text style={styles.infoText}>i</Text>
@@ -75,6 +80,7 @@ function InfoGlyph() {
 }
 
 function SlidersGlyph() {
+  const styles = useStyles();
   return (
     <View style={styles.slidersGlyph}>
       <View style={styles.sliderRow}>
@@ -89,24 +95,22 @@ function SlidersGlyph() {
   );
 }
 
-const GLYPH_COLOR = colors.textSecondary;
-
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   bar: {
     height: 48,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xs,
-    backgroundColor: colors.background,
+    backgroundColor: c.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
+    borderBottomColor: c.divider,
   },
   titleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xs },
-  title: { ...type.heading, flexShrink: 1 },
+  title: { ...t.heading, flexShrink: 1 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   iconBtn: { width: 38, height: 38, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  iconPressed: { backgroundColor: colors.surfaceVariant },
-  line: { height: 1.5, width: 16, borderRadius: 1, backgroundColor: GLYPH_COLOR },
+  iconPressed: { backgroundColor: c.surfaceVariant },
+  line: { height: 1.5, width: 16, borderRadius: 1, backgroundColor: c.textSecondary },
   lineShort: { width: 10 },
   menuGlyph: { width: 16, gap: 5 },
   infoGlyph: {
@@ -114,11 +118,11 @@ const styles = StyleSheet.create({
     height: 17,
     borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: GLYPH_COLOR,
+    borderColor: c.textSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  infoText: { color: GLYPH_COLOR, fontSize: 10, fontWeight: '700', lineHeight: 12 },
+  infoText: { color: c.textSecondary, fontSize: 10, fontWeight: '700', lineHeight: 12 },
   slidersGlyph: { width: 16, gap: 6 },
   sliderRow: { justifyContent: 'center' },
   knob: {
@@ -126,8 +130,8 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: colors.background,
+    backgroundColor: c.background,
     borderWidth: 1.5,
-    borderColor: GLYPH_COLOR,
+    borderColor: c.textSecondary,
   },
-});
+}));

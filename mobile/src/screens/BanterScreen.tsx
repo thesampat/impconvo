@@ -5,7 +5,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   type ListRenderItem,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { ConversationSetting, ConversationStarter } from '../api/types';
-import { colors, radius, spacing, type } from '../theme';
+import { makeStyles, radius, spacing, useColors } from '../theme';
 import { BanterChatBubble, BanterTypingBubble, SystemErrorBubble } from './banter/BanterBubble';
 import PersonaConfigCard from './banter/PersonaConfigCard';
 import PlaybackControls from './banter/PlaybackControls';
@@ -31,6 +30,7 @@ import VibeReviewSheet from './coach/VibeReviewSheet';
 const sameName = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 export default function BanterScreen() {
+  const styles = useStyles();
   const banter = useBanter();
 
   return (
@@ -53,8 +53,9 @@ const ME_MODE_OPTIONS: { id: MeMode; label: string }[] = [
 ];
 
 function SetupView({ banter }: { banter: Banter }) {
+  const styles = useStyles();
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.flex} behavior="padding">
       <ScrollView
         contentContainerStyle={styles.setupContent}
         keyboardShouldPersistTaps="handled"
@@ -71,6 +72,8 @@ function SetupView({ banter }: { banter: Banter }) {
 }
 
 function ScenarioStep({ banter }: { banter: Banter }) {
+  const styles = useStyles();
+  const c = useColors();
   const { topicInput, isGeneratingTopic, isAnalyzing } = banter;
   const hasTopic = topicInput.trim().length > 0;
 
@@ -87,7 +90,7 @@ function ScenarioStep({ banter }: { banter: Banter }) {
         >
           {isGeneratingTopic ? (
             <>
-              <ActivityIndicator size="small" color={colors.textSecondary} style={styles.ideaSpinner} />
+              <ActivityIndicator size="small" color={c.textSecondary} style={styles.ideaSpinner} />
               <Text style={styles.ideaText}>Generating…</Text>
             </>
           ) : (
@@ -100,10 +103,10 @@ function ScenarioStep({ banter }: { banter: Banter }) {
         value={topicInput}
         onChangeText={banter.setTopicInput}
         placeholder="e.g. I approach a girl at a cafe, or a girl asks me for directions on the street"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={c.textMuted}
         multiline
         textAlignVertical="top"
-        selectionColor={colors.accent}
+        selectionColor={c.accent}
         style={styles.topicInput}
       />
       <Text style={styles.hint}>
@@ -122,6 +125,8 @@ function ScenarioStep({ banter }: { banter: Banter }) {
 }
 
 function DetailsStep({ banter }: { banter: Banter }) {
+  const styles = useStyles();
+  const c = useColors();
   const { isLoading, botA, botB } = banter;
   const meName = botA.name.trim() || 'Me';
   const otherName = botB.name.trim() || 'Them';
@@ -153,12 +158,12 @@ function DetailsStep({ banter }: { banter: Banter }) {
       <Segmented options={ME_MODE_OPTIONS} value={banter.meMode} onChange={banter.setMeMode} />
 
       <View style={styles.personSection}>
-        <PersonaConfigCard label="Person A · you" accentColor={colors.accent} config={botA} onChange={banter.setBotA} />
+        <PersonaConfigCard label="Person A · you" accentColor={c.accent} config={botA} onChange={banter.setBotA} />
       </View>
       <View style={styles.personSection}>
         <PersonaConfigCard
           label="Person B · the other person"
-          accentColor={colors.textMuted}
+          accentColor={c.textMuted}
           config={botB}
           onChange={banter.setBotB}
         />
@@ -182,6 +187,7 @@ function Segmented<T extends string>({
   value: T;
   onChange: (id: T) => void;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.settingRow}>
       {options.map((option) => {
@@ -217,6 +223,8 @@ function PrimaryButton({
   disabled?: boolean;
   onPress: () => void;
 }) {
+  const styles = useStyles();
+  const c = useColors();
   const inactive = loading || disabled;
   return (
     <Pressable
@@ -227,7 +235,7 @@ function PrimaryButton({
     >
       {loading ? (
         <View style={styles.buttonLoadingRow}>
-          <ActivityIndicator size="small" color={colors.textSecondary} />
+          <ActivityIndicator size="small" color={c.textSecondary} />
           {loadingLabel ? <Text style={[styles.startText, styles.buttonLoadingText]}>{loadingLabel}</Text> : null}
         </View>
       ) : (
@@ -238,6 +246,8 @@ function PrimaryButton({
 }
 
 function ActiveSession({ banter }: { banter: Banter }) {
+  const styles = useStyles();
+  const c = useColors();
   const { isLoading, isPlaying, isTyping, typingSpeaker, messages, personaA, personaB } = banter;
   const isTypingMode = banter.meMode === 'typing';
   const [expanded, setExpanded] = useState(false);
@@ -259,10 +269,10 @@ function ActiveSession({ banter }: { banter: Banter }) {
   };
 
   const status = isLoading
-    ? { text: 'Writing', color: colors.accent }
+    ? { text: 'Writing', color: c.accent }
     : isPlaying
-      ? { text: 'Live', color: colors.success }
-      : { text: 'Paused', color: colors.textMuted };
+      ? { text: 'Live', color: c.success }
+      : { text: 'Paused', color: c.textMuted };
 
   // A custom dialog rather than Alert.alert, which does nothing on web
   const [showReset, setShowReset] = useState(false);
@@ -284,7 +294,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
       {!isTypingMode && isLoading && messages.length > 0 && (
         <View style={styles.loadingRow}>
           <View style={styles.loadingPill}>
-            <ActivityIndicator size="small" color={colors.textMuted} style={styles.loadingSpinner} />
+            <ActivityIndicator size="small" color={c.textMuted} style={styles.loadingSpinner} />
             <Text style={styles.loadingText}>Writing the next few turns…</Text>
           </View>
         </View>
@@ -293,7 +303,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   );
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.flex} behavior="padding">
       <View style={styles.header}>
         <Pressable
           onPress={() => setExpanded((v) => !v)}
@@ -337,13 +347,13 @@ function ActiveSession({ banter }: { banter: Banter }) {
         {expanded && (
           <View style={styles.versus}>
             <View style={styles.versusSide}>
-              <View style={[styles.dot, { backgroundColor: colors.accent }]} />
+              <View style={[styles.dot, { backgroundColor: c.accent }]} />
               <Text style={styles.versusName}>{personaA}</Text>
             </View>
             <Text style={styles.vs}>vs</Text>
             <View style={styles.versusSide}>
               <Text style={styles.versusName}>{personaB}</Text>
-              <View style={[styles.dot, { backgroundColor: colors.textMuted }]} />
+              <View style={[styles.dot, { backgroundColor: c.textMuted }]} />
             </View>
           </View>
         )}
@@ -417,8 +427,8 @@ function ActiveSession({ banter }: { banter: Banter }) {
 
 const hairline = StyleSheet.hairlineWidth;
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
+const useStyles = makeStyles((c, t) => ({
+  root: { flex: 1, backgroundColor: c.background },
   flex: { flex: 1 },
   pressed: { opacity: 0.7 },
 
@@ -432,15 +442,15 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   titleRow: { marginBottom: spacing.md },
-  title: { ...type.title },
-  titleTag: { ...type.label, color: colors.accent, marginBottom: 2 },
+  title: { ...t.title },
+  titleTag: { ...t.label, color: c.accent, marginBottom: 2 },
   settingLabel: { marginTop: spacing.xs, marginBottom: spacing.xs },
   settingRow: {
     flexDirection: 'row',
     padding: 2,
     marginBottom: spacing.md,
     borderRadius: radius.sm,
-    backgroundColor: colors.surfaceVariant,
+    backgroundColor: c.surfaceVariant,
   },
   settingChip: {
     flex: 1,
@@ -451,11 +461,11 @@ const styles = StyleSheet.create({
     borderWidth: hairline,
     borderColor: 'transparent',
   },
-  settingChipSelected: { backgroundColor: colors.surface, borderColor: colors.borderGlow },
-  settingText: { color: colors.textMuted, fontSize: 13, fontWeight: '500' },
-  settingTextSelected: { color: colors.text },
+  settingChipSelected: { backgroundColor: c.surface, borderColor: c.borderGlow },
+  settingText: { color: c.textMuted, fontSize: 13, fontWeight: '500' },
+  settingTextSelected: { color: c.text },
   topicHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
-  sectionLabel: { ...type.label },
+  sectionLabel: { ...t.label },
   ideaButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -463,18 +473,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.sm,
     borderWidth: hairline,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
   },
   ideaSpinner: { transform: [{ scale: 0.6 }], marginRight: 2 },
-  ideaText: { color: colors.text, fontSize: 13, fontWeight: '500' },
+  ideaText: { color: c.text, fontSize: 13, fontWeight: '500' },
   topicInput: {
     minHeight: 96,
     maxHeight: 180,
     borderRadius: radius.sm,
     borderWidth: hairline,
-    borderColor: colors.borderGlow,
-    backgroundColor: colors.surface,
-    color: colors.text,
+    borderColor: c.borderGlow,
+    backgroundColor: c.surface,
+    color: c.text,
     fontSize: 15,
     lineHeight: 21,
     paddingHorizontal: spacing.md,
@@ -485,7 +495,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.xs,
     borderTopWidth: hairline,
-    borderColor: colors.divider,
+    borderColor: c.divider,
   },
   startButton: {
     marginTop: spacing.lg,
@@ -493,42 +503,42 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: c.primary,
   },
-  startButtonInactive: { backgroundColor: colors.surfaceVariant },
-  startText: { color: colors.onPrimary, fontSize: 15, fontWeight: '500' },
-  startTextDisabled: { color: colors.textMuted },
+  startButtonInactive: { backgroundColor: c.surfaceVariant },
+  startText: { color: c.onPrimary, fontSize: 15, fontWeight: '500' },
+  startTextDisabled: { color: c.textMuted },
   buttonLoadingRow: { flexDirection: 'row', alignItems: 'center' },
-  buttonLoadingText: { marginLeft: spacing.sm, color: colors.textSecondary },
-  hint: { ...type.caption, color: colors.textMuted, marginTop: spacing.xs },
+  buttonLoadingText: { marginLeft: spacing.sm, color: c.textSecondary },
+  hint: { ...t.caption, color: c.textMuted, marginTop: spacing.xs },
   scenarioSummary: {
     paddingBottom: spacing.md,
     marginBottom: spacing.md,
     borderBottomWidth: hairline,
-    borderColor: colors.divider,
+    borderColor: c.divider,
   },
   summaryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
-  summaryLabel: { ...type.label },
-  summaryEdit: { color: colors.accent, fontSize: 13, fontWeight: '500' },
-  summaryText: { ...type.body },
-  analyzeError: { color: colors.error, fontSize: 13, marginBottom: spacing.sm },
+  summaryLabel: { ...t.label },
+  summaryEdit: { color: c.accent, fontSize: 13, fontWeight: '500' },
+  summaryText: { ...t.body },
+  analyzeError: { color: c.error, fontSize: 13, marginBottom: spacing.sm },
 
   // Active session header
   header: {
-    backgroundColor: colors.background,
+    backgroundColor: c.background,
     borderBottomWidth: hairline,
-    borderColor: colors.border,
+    borderColor: c.border,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center' },
   chevron: { width: 18, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs },
-  chevronText: { color: colors.textMuted, fontSize: 12 },
-  topicLine: { flex: 1, color: colors.text, fontSize: 14, lineHeight: 20 },
-  topicPrefix: { color: colors.textMuted, fontWeight: '500' },
+  chevronText: { color: c.textMuted, fontSize: 12 },
+  topicLine: { flex: 1, color: c.text, fontSize: 14, lineHeight: 20 },
+  topicPrefix: { color: c.textMuted, fontWeight: '500' },
   statusPill: { flexDirection: 'row', alignItems: 'center', marginLeft: spacing.sm, gap: 6 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { color: colors.textSecondary, fontSize: 12, fontWeight: '500' },
+  statusText: { color: c.textSecondary, fontSize: 12, fontWeight: '500' },
   reportButton: {
     marginLeft: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -536,11 +546,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
     borderWidth: hairline,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
   },
-  reportText: { color: colors.text, fontSize: 12, fontWeight: '500' },
+  reportText: { color: c.text, fontSize: 12, fontWeight: '500' },
   resetButton: { marginLeft: spacing.xs, width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
-  resetText: { color: colors.textMuted, fontSize: 16 },
+  resetText: { color: c.textMuted, fontSize: 16 },
   versus: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -548,11 +558,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: hairline,
-    borderColor: colors.divider,
+    borderColor: c.divider,
   },
   versusSide: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  versusName: { color: colors.text, fontSize: 13, fontWeight: '500' },
-  vs: { color: colors.textMuted, fontSize: 12 },
+  versusName: { color: c.text, fontSize: 13, fontWeight: '500' },
+  vs: { color: c.textMuted, fontSize: 12 },
   dot: { width: 6, height: 6, borderRadius: 3 },
 
   // Feed
@@ -561,5 +571,5 @@ const styles = StyleSheet.create({
   loadingRow: { flexDirection: 'row', justifyContent: 'center' },
   loadingPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   loadingSpinner: { transform: [{ scale: 0.6 }], marginRight: spacing.xs },
-  loadingText: { color: colors.textMuted, fontSize: 12 },
-});
+  loadingText: { color: c.textMuted, fontSize: 12 },
+}));

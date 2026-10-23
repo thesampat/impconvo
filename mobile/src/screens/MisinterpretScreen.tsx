@@ -1,6 +1,6 @@
 // Ported from android/app/.../ui/screens/MisinterpretScreen.kt (+ copy/toast and partner quote from src/static/misinterpret.html)
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '../api/client';
@@ -9,10 +9,12 @@ import { spacing } from '../theme';
 import PartnerQuote from './misinterpret/PartnerQuote';
 import CopyToast from './openers/CopyToast';
 import ResultCard from './openers/ResultCard';
-import { GenerateButton, errorMessage, placeholderTextColor, screenStyles as s } from './openers/shared';
+import { GenerateButton, errorMessage, usePlaceholderTextColor, useScreenStyles } from './openers/shared';
 import { useCopyToast } from './openers/useCopyToast';
 
 export default function MisinterpretScreen() {
+  const s = useScreenStyles();
+  const placeholderTextColor = usePlaceholderTextColor();
   const insets = useSafeAreaInsets();
   const { toastVisible, copy } = useCopyToast();
 
@@ -40,7 +42,7 @@ export default function MisinterpretScreen() {
   const items = result?.misinterpretations ?? [];
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={s.flex} behavior="padding">
       <ScrollView
         contentContainerStyle={[s.content, { paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"

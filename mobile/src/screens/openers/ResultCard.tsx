@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, type } from '../../theme';
+import { makeStyles, radius, spacing } from '../../theme';
 
 interface Props {
   badge: string;
@@ -11,6 +11,7 @@ interface Props {
 
 /** Result row shared by Openers and Misinterpret: tap the card or Copy to copy the line. */
 export default function ResultCard({ badge, text, explanation, onCopy }: Props) {
+  const styles = useStyles();
   return (
     <Pressable
       onPress={() => onCopy(text)}
@@ -40,25 +41,25 @@ export default function ResultCard({ badge, text, explanation, onCopy }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   // Flat list row: sits on the page background, separated by a hairline
   card: {
     paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
+    borderBottomColor: c.divider,
   },
   pressed: { opacity: 0.7 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  badgeText: { ...type.label, fontSize: 12, flexShrink: 1 },
+  badgeText: { ...t.label, fontSize: 12, flexShrink: 1 },
   copyButton: {
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     marginLeft: spacing.sm,
   },
-  copyText: { color: colors.textSecondary, fontSize: 12, fontWeight: '500' },
-  text: { ...type.body, fontWeight: '500', marginTop: spacing.xs },
-  explanation: { ...type.caption, color: colors.textMuted, marginTop: 2 },
-});
+  copyText: { color: c.textSecondary, fontSize: 12, fontWeight: '500' },
+  text: { ...t.body, fontWeight: '500', marginTop: spacing.xs },
+  explanation: { ...t.caption, color: c.textMuted, marginTop: 2 },
+}));

@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-import { colors, spacing, type } from '../../theme';
+import { makeStyles, spacing } from '../../theme';
 
 /** The partner line the twists are based on, shown above the results (as the web version does). */
 export default function PartnerQuote({ text }: { text: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.box}>
       <Text style={styles.label}>Partner</Text>
@@ -12,15 +13,15 @@ export default function PartnerQuote({ text }: { text: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   box: {
     marginTop: spacing.xs,
     marginBottom: spacing.xs,
     paddingLeft: spacing.sm,
     paddingVertical: 2,
     borderLeftWidth: 2,
-    borderLeftColor: colors.borderGlow,
+    borderLeftColor: c.borderGlow,
   },
-  label: { ...type.label, fontSize: 12, marginBottom: 2 },
-  text: { ...type.body, color: colors.textSecondary },
-});
+  label: { ...t.label, fontSize: 12, marginBottom: 2 },
+  text: { ...t.body, color: c.textSecondary },
+}));

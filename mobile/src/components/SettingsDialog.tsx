@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import { MODEL_NOTES, useSettings, type AdminSettings, type AdminSettingsPatch } from '../state/SettingsContext';
-import { colors, radius, spacing, type } from '../theme';
+import { makeStyles, radius, spacing, useColors } from '../theme';
 import AdminUsageSection, { AdminTrafficSection } from './AdminUsageSection';
 
 export type AdminSection = 'usage' | 'model' | 'limits' | 'device';
@@ -59,6 +59,8 @@ function parseLimit(text: string): number | null {
 }
 
 export default function SettingsDialog({ visible, section, onClose }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const {
     isConnected,
     isTesting,
@@ -101,7 +103,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
     setDraft((d) => (d ? { ...d, ...patch } : d));
   };
 
-  const statusColor = isConnected ? colors.success : colors.error;
+  const statusColor = isConnected ? c.success : c.error;
   const models = adminSettings?.available_models ?? [];
   const invalid = draft ? LIMIT_FIELDS.some((f) => parseLimit(draft[f.key]) === null) : false;
   const editable = section === 'model' || section === 'limits';
@@ -156,7 +158,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.root} behavior="padding">
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close admin settings" />
         <View style={styles.dialog}>
           <View style={styles.headerRow}>
@@ -171,7 +173,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
                 style={({ pressed }) => [styles.textBtn, styles.headerRefresh, pressed && styles.closePressed]}
               >
                 {refreshingUsage ? (
-                  <ActivityIndicator size="small" color={colors.textSecondary} />
+                  <ActivityIndicator size="small" color={c.textSecondary} />
                 ) : (
                   <Text style={styles.testText}>Refresh</Text>
                 )}
@@ -198,7 +200,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
 
             {editable && !draft ? (
               <View style={styles.loading}>
-                <ActivityIndicator size="small" color={colors.textSecondary} />
+                <ActivityIndicator size="small" color={c.textSecondary} />
               </View>
             ) : null}
 
@@ -283,7 +285,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
                 style={({ pressed }) => [styles.testBtn, pressed && styles.closePressed]}
               >
                 {isTesting ? (
-                  <ActivityIndicator size="small" color={colors.textSecondary} />
+                  <ActivityIndicator size="small" color={c.textSecondary} />
                 ) : (
                   <Text style={styles.testText}>Test</Text>
                 )}
@@ -341,7 +343,7 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
                 accessibilityRole="button"
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color={colors.onPrimary} />
+                  <ActivityIndicator size="small" color={c.onPrimary} />
                 ) : (
                   <Text style={styles.saveText}>Save</Text>
                 )}
@@ -354,19 +356,19 @@ export default function SettingsDialog({ visible, section, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   root: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.md,
-    backgroundColor: colors.scrim,
+    backgroundColor: c.scrim,
   },
   dialog: {
     width: '100%',
     maxWidth: 480,
     maxHeight: '90%',
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderRadius: radius.lg,
     padding: spacing.lg,
   },
@@ -375,39 +377,39 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 0, flexShrink: 1 },
   scrollContent: { paddingBottom: spacing.xs },
   loading: { paddingVertical: spacing.md, alignItems: 'center' },
-  title: { ...type.title, flex: 1 },
+  title: { ...t.title, flex: 1 },
   closeBtn: { width: 28, height: 28, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  closePressed: { backgroundColor: colors.surfaceVariant },
-  close: { color: colors.textMuted, fontSize: 14 },
-  label: { ...type.label, marginBottom: spacing.xs },
+  closePressed: { backgroundColor: c.surfaceVariant },
+  close: { color: c.textMuted, fontSize: 14 },
+  label: { ...t.label, marginBottom: spacing.xs },
   // Sections are split by one hairline and a small label, not boxed
   section: {
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
   textBtn: { minWidth: 52, height: 26, paddingHorizontal: spacing.sm, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.divider },
+  rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.divider },
   trafficGap: { marginTop: spacing.md },
   limitRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
   limitText: { flex: 1 },
-  limitLabel: { color: colors.text, fontSize: 14 },
-  limitError: { color: colors.error, fontSize: 12, marginTop: 2 },
+  limitLabel: { color: c.text, fontSize: 14 },
+  limitError: { color: c.error, fontSize: 12, marginTop: 2 },
   limitInput: {
     width: 120,
     height: 32,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
-    color: colors.text,
+    color: c.text,
     fontSize: 14,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
   },
-  limitInputError: { borderColor: colors.error },
-  error: { color: colors.error, fontSize: 13, marginTop: spacing.sm },
+  limitInputError: { borderColor: c.error },
+  error: { color: c.error, fontSize: 13, marginTop: spacing.sm },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -415,15 +417,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { flex: 1, color: colors.text, fontSize: 14 },
+  statusText: { flex: 1, color: c.text, fontSize: 14 },
   deviceRow: {
     paddingVertical: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
-  deviceTitle: { color: colors.textMuted, fontSize: 12, fontWeight: '500' },
-  deviceId: { color: colors.text, fontSize: 13, marginTop: 2, fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }) },
-  deviceNote: { color: colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: spacing.xs },
+  deviceTitle: { color: c.textMuted, fontSize: 12, fontWeight: '500' },
+  deviceId: { color: c.text, fontSize: 13, marginTop: 2, fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }) },
+  deviceNote: { color: c.textMuted, fontSize: 12, lineHeight: 17, marginTop: spacing.xs },
   testBtn: {
     minWidth: 52,
     height: 28,
@@ -432,29 +434,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  testText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
+  testText: { color: c.textSecondary, fontSize: 13, fontWeight: '500' },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     paddingVertical: spacing.sm,
   },
-  optionPressed: { backgroundColor: colors.surfaceVariant },
+  optionPressed: { backgroundColor: c.surfaceVariant },
   radio: {
     width: 16,
     height: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.textMuted,
+    borderColor: c.textMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioActive: { borderColor: colors.text },
-  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.text },
-  optionText: { color: colors.textSecondary, fontSize: 14 },
+  radioActive: { borderColor: c.text },
+  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.text },
+  optionText: { color: c.textSecondary, fontSize: 14 },
   optionBody: { flex: 1 },
-  optionNote: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  optionTextActive: { color: colors.text, fontWeight: '500' },
+  optionNote: { color: c.textMuted, fontSize: 12, marginTop: 2 },
+  optionTextActive: { color: c.text, fontWeight: '500' },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -462,22 +464,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
   actionsSpacer: { flex: 1 },
   lockBtn: { height: 32, paddingHorizontal: spacing.xs, borderRadius: radius.sm, justifyContent: 'center' },
-  lockText: { color: colors.textMuted, fontSize: 13, fontWeight: '500' },
+  lockText: { color: c.textMuted, fontSize: 13, fontWeight: '500' },
   cancel: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     height: 32,
     justifyContent: 'center',
   },
-  cancelText: { color: colors.text, fontWeight: '500', fontSize: 14 },
+  cancelText: { color: c.text, fontWeight: '500', fontSize: 14 },
   save: {
-    backgroundColor: colors.primary,
+    backgroundColor: c.primary,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     height: 32,
@@ -487,5 +489,5 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },
-  saveText: { color: colors.onPrimary, fontWeight: '600', fontSize: 14 },
-});
+  saveText: { color: c.onPrimary, fontWeight: '600', fontSize: 14 },
+}));

@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import { colors, radius, spacing, type } from '../../theme';
+import { makeStyles, radius, spacing, useColors } from '../../theme';
 import type { SuggestionsDialogProps } from './types';
 
 const BADGES = ['Humor', 'Banter', 'Smooth'];
@@ -22,13 +22,15 @@ export default function SuggestionsDialog({
   onRegenerate,
   onClose,
 }: SuggestionsDialogProps) {
+  const styles = useStyles();
+  const c = useColors();
   const options = suggestions.slice(0, 3);
 
   let body: ReactNode;
   if (loading) {
     body = (
       <View style={styles.centerBlock}>
-        <ActivityIndicator color={colors.textSecondary} size="small" />
+        <ActivityIndicator color={c.textSecondary} size="small" />
         <Text style={styles.mutedText}>Drafting rewrites…</Text>
       </View>
     );
@@ -112,10 +114,10 @@ export default function SuggestionsDialog({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   backdrop: {
     flex: 1,
-    backgroundColor: colors.scrim,
+    backgroundColor: c.scrim,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.md,
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
   dialog: {
     width: '100%',
     maxWidth: 480,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    ...type.title,
+    ...t.title,
     fontSize: 16,
     flex: 1,
   },
@@ -147,11 +149,11 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
   },
   iconText: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 16,
   },
   subtitle: {
-    ...type.caption,
+    ...t.caption,
     marginTop: 2,
     marginBottom: spacing.sm,
   },
@@ -162,13 +164,13 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   mutedText: {
-    ...type.caption,
+    ...t.caption,
     fontSize: 14,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
   },
   errorText: {
-    color: colors.error,
+    color: c.error,
   },
   retryButton: {
     height: 34,
@@ -176,10 +178,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
   },
   retryText: {
-    color: colors.text,
+    color: c.text,
     fontWeight: '500',
     fontSize: 14,
   },
@@ -188,17 +190,17 @@ const styles = StyleSheet.create({
   card: {
     paddingVertical: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
   badgeText: {
-    ...type.label,
+    ...t.label,
     fontSize: 12,
     marginBottom: 2,
   },
   suggestionText: {
-    ...type.body,
+    ...t.body,
   },
   pressed: {
     opacity: 0.6,
   },
-});
+}));

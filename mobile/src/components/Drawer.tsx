@@ -14,8 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SCREENS, type ScreenId } from '../screens/types';
 import { useSettings } from '../state/SettingsContext';
+import { useTheme } from '../state/ThemeContext';
 import { ADMIN_SECTIONS, type AdminSection } from './SettingsDialog';
-import { colors, radius, spacing, type } from '../theme';
+import { THEMES, makeStyles, radius, spacing, useColors } from '../theme';
 
 const DRAWER_WIDTH = 310;
 const SECRET_TAP_COUNT = 5;
@@ -36,6 +37,9 @@ interface Props {
 }
 
 export default function Drawer({ open, current, onClose, onSelect, onGuide, onAdmin, onBrandSecretTap, onClosed }: Props) {
+  const styles = useStyles();
+  const c = useColors();
+  const { theme, setTheme } = useTheme();
   const insets = useSafeAreaInsets();
   const { isConnected, isTesting, testConnection, isAdmin } = useSettings();
   const progress = useRef(new Animated.Value(0)).current;
@@ -71,7 +75,7 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
   }, [mounted, onClosed]);
 
   const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [-DRAWER_WIDTH, 0] });
-  const statusColor = isConnected ? colors.success : colors.error;
+  const statusColor = isConnected ? c.success : c.error;
 
   return (
     <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
@@ -104,7 +108,7 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
               style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
             >
               {isTesting ? (
-                <ActivityIndicator size="small" color={colors.textSecondary} style={styles.chipSpinner} />
+                <ActivityIndicator size="small" color={c.textSecondary} style={styles.chipSpinner} />
               ) : (
                 <View style={[styles.chipDot, { backgroundColor: statusColor }]} />
               )}
@@ -157,6 +161,34 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
           </>
         )}
 
+        <Text style={styles.sectionLabel}>Appearance</Text>
+        <View style={styles.nav}>
+          {/* Themes apply instantly and the menu stays open, so they can be compared */}
+          {THEMES.map((t) => {
+            const selected = t.id === theme.id;
+            const p = t.colors;
+            return (
+              <Pressable
+                key={t.id}
+                onPress={() => setTheme(t.id)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
+                accessibilityLabel={`${t.name} theme`}
+                style={({ pressed }) => [styles.navItem, selected && styles.navItemActive, pressed && !selected && styles.pressed]}
+              >
+                <View style={[styles.activeBar, selected && styles.activeBarOn]} />
+                <View style={styles.swatches}>
+                  <View style={[styles.swatch, { backgroundColor: p.background, borderWidth: StyleSheet.hairlineWidth, borderColor: p.borderGlow }]} />
+                  <View style={[styles.swatch, { backgroundColor: p.primary }]} />
+                  <View style={[styles.swatch, { backgroundColor: p.accent }]} />
+                </View>
+                <Text style={[styles.navText, styles.flex, selected && styles.navTextActive]}>{t.name}</Text>
+                {selected ? <Text style={styles.check}>✓</Text> : null}
+              </Pressable>
+            );
+          })}
+        </View>
+
         <View style={styles.spacer} />
 
         <View style={styles.footer}>
@@ -173,8 +205,8 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: colors.scrim },
+const useStyles = makeStyles((c, t) => ({
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: c.scrim },
   sheet: {
     position: 'absolute',
     top: 0,
@@ -182,15 +214,15 @@ const styles = StyleSheet.create({
     left: 0,
     width: DRAWER_WIDTH,
     maxWidth: '85%',
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: c.border,
   },
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md, gap: spacing.sm },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   logo: { width: 32, height: 32 },
-  brand: { ...type.heading, fontSize: 16 },
-  tagline: { color: colors.textMuted, fontSize: 12, marginTop: 1 },
+  brand: { ...t.heading, fontSize: 16 },
+  tagline: { color: c.textMuted, fontSize: 12, marginTop: 1 },
   // Plain status text with a dot; no pill
   chip: {
     alignSelf: 'flex-start',
@@ -202,10 +234,10 @@ const styles = StyleSheet.create({
   },
   chipDot: { width: 6, height: 6, borderRadius: 3 },
   chipSpinner: { transform: [{ scale: 0.6 }], width: 10, height: 10 },
-  chipText: { color: colors.textSecondary, fontSize: 12, fontWeight: '500' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.divider },
+  chipText: { color: c.textSecondary, fontSize: 12, fontWeight: '500' },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: c.divider },
   sectionLabel: {
-    ...type.label,
+    ...t.label,
     paddingHorizontal: spacing.lg,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
@@ -218,18 +250,22 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: radius.sm,
   },
-  navItemActive: { backgroundColor: colors.surfaceVariant },
+  navItemActive: { backgroundColor: c.surfaceVariant },
   activeBar: { width: 2, height: 16, borderRadius: 1, marginRight: 10, backgroundColor: 'transparent' },
-  activeBarOn: { backgroundColor: colors.accent },
-  navText: { color: colors.textSecondary, fontSize: 14, fontWeight: '400' },
-  navTextActive: { color: colors.text, fontWeight: '500' },
-  pressed: { backgroundColor: colors.surfaceVariant },
+  activeBarOn: { backgroundColor: c.accent },
+  navText: { color: c.textSecondary, fontSize: 14, fontWeight: '400' },
+  navTextActive: { color: c.text, fontWeight: '500' },
+  swatches: { flexDirection: 'row', gap: 3, marginRight: spacing.md },
+  swatch: { width: 12, height: 12, borderRadius: radius.sm },
+  check: { color: c.accent, fontSize: 14, fontWeight: '600' },
+  flex: { flex: 1 },
+  pressed: { backgroundColor: c.surfaceVariant },
   spacer: { flex: 1 },
   footer: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
     gap: 1,
   },
   footerItem: {
@@ -238,5 +274,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
-  footerText: { color: colors.textSecondary, fontSize: 14 },
-});
+  footerText: { color: c.textSecondary, fontSize: 14 },
+}));

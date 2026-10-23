@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, radius, spacing } from '../../theme';
+import { makeStyles, radius, spacing, useColors } from '../../theme';
 import { useDoubleTap } from './useDoubleTap';
 
 interface Props {
@@ -14,6 +14,8 @@ interface Props {
 }
 
 export default function Composer({ value, onChangeText, onSend, onSuggest, isLoading, bottomInset }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const hasText = value.trim().length > 0;
   const canSend = hasText && !isLoading;
 
@@ -38,7 +40,7 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
           onChangeText={onChangeText}
           onPressIn={onInputPress}
           placeholder="Type a response"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={c.textMuted}
           multiline
           style={styles.input}
         />
@@ -65,13 +67,13 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   wrapper: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.background,
+    borderTopColor: c.divider,
+    backgroundColor: c.background,
   },
   // Flat row on the page background; only the text field keeps a hairline border
   capsule: {
@@ -83,11 +85,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  suggestText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
+  suggestText: { color: c.textSecondary, fontSize: 13, fontWeight: '500' },
   pressed: { opacity: 0.7 },
   input: {
     flex: 1,
@@ -98,15 +100,15 @@ const styles = StyleSheet.create({
     maxHeight: 84,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
-    backgroundColor: colors.surface,
-    color: colors.text,
+    borderColor: c.borderGlow,
+    backgroundColor: c.surface,
+    color: c.text,
     fontSize: 15,
   },
   sendButton: { width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  sendActive: { backgroundColor: colors.primary },
-  sendInactive: { backgroundColor: colors.surfaceVariant },
+  sendActive: { backgroundColor: c.primary },
+  sendInactive: { backgroundColor: c.surfaceVariant },
   sendBusy: { opacity: 0.5 },
-  sendIcon: { color: colors.onPrimary, fontSize: 17, fontWeight: '600' },
-  sendIconDisabled: { color: colors.textMuted },
-});
+  sendIcon: { color: c.onPrimary, fontSize: 17, fontWeight: '600' },
+  sendIconDisabled: { color: c.textMuted },
+}));

@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -13,7 +12,7 @@ import {
 
 import { ApiError } from '../api/client';
 import { useSettings } from '../state/SettingsContext';
-import { colors, radius, spacing, type } from '../theme';
+import { makeStyles, radius, spacing, useColors } from '../theme';
 
 interface Props {
   visible: boolean;
@@ -32,6 +31,8 @@ function unlockErrorMessage(e: unknown): string {
 }
 
 export default function AdminUnlockDialog({ visible, onClose, onUnlocked }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const { unlockAdmin } = useSettings();
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -63,7 +64,7 @@ export default function AdminUnlockDialog({ visible, onClose, onUnlocked }: Prop
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.root} behavior="padding">
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
         <View style={styles.dialog}>
           <Text style={styles.title}>Enter code</Text>
@@ -81,7 +82,7 @@ export default function AdminUnlockDialog({ visible, onClose, onUnlocked }: Prop
             autoFocus
             returnKeyType="done"
             placeholder="Code"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={c.textMuted}
             accessibilityLabel="Code"
             style={[styles.input, error ? styles.inputError : null]}
           />
@@ -106,7 +107,7 @@ export default function AdminUnlockDialog({ visible, onClose, onUnlocked }: Prop
               accessibilityRole="button"
             >
               {busy ? (
-                <ActivityIndicator size="small" color={colors.onPrimary} />
+                <ActivityIndicator size="small" color={c.onPrimary} />
               ) : (
                 <Text style={styles.primaryText}>Unlock</Text>
               )}
@@ -118,45 +119,45 @@ export default function AdminUnlockDialog({ visible, onClose, onUnlocked }: Prop
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   root: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.md,
-    backgroundColor: colors.scrim,
+    backgroundColor: c.scrim,
   },
   dialog: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderRadius: radius.lg,
     padding: spacing.lg,
   },
-  title: { ...type.title, marginBottom: spacing.md },
+  title: { ...t.title, marginBottom: spacing.md },
   input: {
-    ...type.body,
+    ...t.body,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
     height: 38,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
   },
-  inputError: { borderColor: colors.error },
-  error: { color: colors.error, fontSize: 13, marginTop: spacing.sm },
+  inputError: { borderColor: c.error },
+  error: { color: c.error, fontSize: 13, marginTop: spacing.sm },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
   cancel: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     height: 32,
     justifyContent: 'center',
   },
-  cancelText: { color: colors.text, fontWeight: '500', fontSize: 14 },
+  cancelText: { color: c.text, fontWeight: '500', fontSize: 14 },
   primary: {
-    backgroundColor: colors.primary,
+    backgroundColor: c.primary,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     height: 32,
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryText: { color: colors.onPrimary, fontWeight: '600', fontSize: 14 },
+  primaryText: { color: c.onPrimary, fontWeight: '600', fontSize: 14 },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },
-});
+}));

@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius } from '../../theme';
+import { makeStyles, radius, useColors } from '../../theme';
 import { withAlpha } from './presets';
 
 function bubbleCorners(isMine: boolean) {
@@ -13,6 +13,7 @@ function bubbleCorners(isMine: boolean) {
 }
 
 export function BanterChatBubble({ speaker, text, isMine }: { speaker: string; text: string; isMine: boolean }) {
+  const styles = useStyles();
   return (
     <View style={[styles.row, isMine && styles.rowEnd]}>
       <View style={[styles.column, isMine && styles.columnEnd]}>
@@ -28,17 +29,20 @@ export function BanterChatBubble({ speaker, text, isMine }: { speaker: string; t
 }
 
 export function BanterTypingBubble({ speaker, isMine }: { speaker: string; isMine: boolean }) {
+  const styles = useStyles();
+  const c = useColors();
   return (
     <View style={[styles.row, isMine && styles.rowEnd]}>
       <View style={[styles.typing, bubbleCorners(isMine)]}>
         <Text style={styles.typingText}>{speaker} is typing</Text>
-        <ActivityIndicator size="small" color={colors.textMuted} style={styles.typingSpinner} />
+        <ActivityIndicator size="small" color={c.textMuted} style={styles.typingSpinner} />
       </View>
     </View>
   );
 }
 
 export function SystemErrorBubble({ text }: { text: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.error}>
       <Text style={styles.errorText}>{text}</Text>
@@ -46,40 +50,40 @@ export function SystemErrorBubble({ text }: { text: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   row: { flexDirection: 'row', justifyContent: 'flex-start' },
   rowEnd: { justifyContent: 'flex-end' },
   column: { maxWidth: '80%', alignItems: 'flex-start' },
   columnEnd: { alignItems: 'flex-end' },
-  speaker: { color: colors.textMuted, fontSize: 12, fontWeight: '500', marginBottom: 2, marginHorizontal: 2 },
+  speaker: { color: c.textMuted, fontSize: 12, fontWeight: '500', marginBottom: 2, marginHorizontal: 2 },
   bubble: { paddingHorizontal: 12, paddingVertical: 8 },
-  bubbleMine: { backgroundColor: colors.bubbleOutgoing },
+  bubbleMine: { backgroundColor: c.bubbleOutgoing },
   bubbleTheirs: {
-    backgroundColor: colors.bubbleIncoming,
+    backgroundColor: c.bubbleIncoming,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
   },
   text: { fontSize: 15, lineHeight: 21 },
-  textMine: { color: colors.onBubbleOutgoing },
-  textTheirs: { color: colors.onBubbleIncoming },
+  textMine: { color: c.onBubbleOutgoing },
+  textTheirs: { color: c.onBubbleIncoming },
   typing: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bubbleIncoming,
+    backgroundColor: c.bubbleIncoming,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  typingText: { color: colors.textMuted, fontSize: 13 },
+  typingText: { color: c.textMuted, fontSize: 13 },
   typingSpinner: { marginLeft: 6, transform: [{ scale: 0.6 }] },
   error: {
     borderRadius: radius.sm,
-    backgroundColor: withAlpha(colors.error, 0.06),
+    backgroundColor: withAlpha(c.error, 0.06),
     borderLeftWidth: 2,
-    borderColor: colors.error,
+    borderColor: c.error,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  errorText: { color: colors.error, fontSize: 13, lineHeight: 18 },
-});
+  errorText: { color: c.error, fontSize: 13, lineHeight: 18 },
+}));

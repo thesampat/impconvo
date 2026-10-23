@@ -11,13 +11,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, spacing, type } from '../../theme';
+import { makeStyles, radius, spacing, useColors } from '../../theme';
 import { copyReport, exportReportPdf, shareReport } from './report';
 import type { ChatReportData, VibeReviewSheetProps } from './types';
 
 type Toast = { text: string; tone: 'ok' | 'error' };
 
 export default function VibeReviewSheet({ visible, loading, error, report, onClose }: VibeReviewSheetProps) {
+  const styles = useStyles();
+  const c = useColors();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const [toast, setToast] = useState<Toast | null>(null);
@@ -52,7 +54,7 @@ export default function VibeReviewSheet({ visible, loading, error, report, onClo
   if (loading) {
     content = (
       <View style={styles.stateBlock}>
-        <ActivityIndicator color={colors.textSecondary} size="small" />
+        <ActivityIndicator color={c.textSecondary} size="small" />
         <Text style={styles.mutedText}>Reviewing the conversation…</Text>
       </View>
     );
@@ -156,6 +158,7 @@ export default function VibeReviewSheet({ visible, loading, error, report, onClo
 }
 
 function ActionButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
+  const styles = useStyles();
   return (
     <Pressable
       onPress={onPress}
@@ -168,17 +171,17 @@ function ActionButton({ label, onPress, disabled }: { label: string; onPress: ()
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: colors.scrim,
+    backgroundColor: c.scrim,
   },
   sheet: {
     width: '100%',
     maxWidth: 680,
     alignSelf: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     paddingHorizontal: spacing.lg,
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 3,
     borderRadius: radius.sm,
-    backgroundColor: colors.borderGlow,
+    backgroundColor: c.borderGlow,
     marginVertical: spacing.sm,
   },
   header: {
@@ -198,7 +201,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   title: {
-    ...type.title,
+    ...t.title,
     flex: 1,
   },
   closeButton: {
@@ -209,7 +212,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeIcon: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 16,
   },
   scroll: {
@@ -225,14 +228,14 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   mutedText: {
-    ...type.caption,
+    ...t.caption,
     fontSize: 14,
     lineHeight: 20,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
   },
   errorText: {
-    color: colors.error,
+    color: c.error,
   },
   emptyText: {
     textAlign: 'left',
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   scoreLabel: {
-    ...type.label,
+    ...t.label,
   },
   scoreRow: {
     flexDirection: 'row',
@@ -250,30 +253,30 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   scoreValue: {
-    color: colors.text,
+    color: c.text,
     fontSize: 36,
     fontWeight: '300',
     letterSpacing: -1,
     lineHeight: 40,
   },
   scoreOutOf: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 15,
     marginLeft: spacing.sm,
   },
   progressTrack: {
     height: 2,
-    backgroundColor: colors.border,
+    backgroundColor: c.border,
     marginTop: spacing.sm,
     overflow: 'hidden',
   },
   progressFill: {
     height: 2,
-    backgroundColor: colors.text,
+    backgroundColor: c.text,
   },
   feedback: {
-    ...type.body,
-    color: colors.textSecondary,
+    ...t.body,
+    color: c.textSecondary,
     marginTop: spacing.md,
   },
   actionRow: {
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
   actionButton: {
     flex: 1,
@@ -290,10 +293,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
   },
   actionText: {
-    color: colors.text,
+    color: c.text,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -303,35 +306,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.sm,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: c.surfaceElevated,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
   },
   toastError: {
-    borderColor: colors.error,
+    borderColor: c.error,
   },
   toastText: {
-    color: colors.text,
+    color: c.text,
     fontSize: 13,
     fontWeight: '500',
     textAlign: 'center',
   },
   // Section header: hairline rule plus small uppercase label
   sectionTitle: {
-    ...type.label,
+    ...t.label,
     paddingTop: spacing.md,
     paddingBottom: spacing.xs,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
   // Each comparison is a divided row, not a bordered card
   card: {
     paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
+    borderBottomColor: c.divider,
   },
   cardLabel: {
-    ...type.label,
+    ...t.label,
     fontSize: 12,
     marginBottom: 2,
   },
@@ -339,23 +342,23 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   cardBody: {
-    ...type.body,
+    ...t.body,
   },
   cardBodyMuted: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   cardBodyStrong: {
     fontWeight: '500',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
+    backgroundColor: c.divider,
     marginVertical: spacing.sm,
   },
   explanation: {
-    ...type.caption,
+    ...t.caption,
   },
   pressed: {
     opacity: 0.6,
   },
-});
+}));

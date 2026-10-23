@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, spacing } from '../../theme';
+import { makeStyles, radius, spacing } from '../../theme';
 
 interface Props {
   isPlaying: boolean;
@@ -13,6 +13,7 @@ interface Props {
 }
 
 export default function PlaybackControls({ isPlaying, isLoading, queueSize, onTogglePlay, onNext, onContinue }: Props) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const canSkip = queueSize > 0;
 
@@ -56,7 +57,7 @@ export default function PlaybackControls({ isPlaying, isLoading, queueSize, onTo
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -64,8 +65,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderColor: c.border,
+    backgroundColor: c.background,
   },
   button: {
     flex: 1,
@@ -75,10 +76,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primary: { backgroundColor: colors.primary },
-  secondary: { borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderGlow },
-  buttonText: { color: colors.text, fontSize: 13, fontWeight: '500' },
-  primaryText: { color: colors.onPrimary, fontWeight: '600' },
+  primary: { backgroundColor: c.primary },
+  secondary: { borderWidth: StyleSheet.hairlineWidth, borderColor: c.borderGlow },
+  buttonText: { color: c.text, fontSize: 13, fontWeight: '500' },
+  primaryText: { color: c.onPrimary, fontWeight: '600' },
   pressed: { opacity: 0.7 },
   disabled: { opacity: 0.4 },
-});
+}));

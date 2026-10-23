@@ -1,6 +1,6 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, type } from '../../theme';
+import { makeStyles, radius, spacing } from '../../theme';
 
 interface Props {
   visible: boolean;
@@ -20,6 +20,7 @@ export default function ResetDialog({
   title = 'Reset this chat?',
   message = DEFAULT_MESSAGE,
 }: Props) {
+  const styles = useStyles();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
       <Pressable style={styles.backdrop} onPress={onCancel}>
@@ -49,10 +50,10 @@ export default function ResetDialog({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   backdrop: {
     flex: 1,
-    backgroundColor: colors.scrim,
+    backgroundColor: c.scrim,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.lg,
@@ -60,12 +61,12 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderRadius: radius.lg,
     padding: spacing.lg,
   },
-  title: { ...type.title, fontSize: 16, marginBottom: spacing.xs },
-  body: { ...type.caption, fontSize: 14, lineHeight: 20 },
+  title: { ...t.title, fontSize: 16, marginBottom: spacing.xs },
+  body: { ...t.caption, fontSize: 14, lineHeight: 20 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: spacing.lg, gap: spacing.sm },
   button: {
     height: 34,
@@ -74,9 +75,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelButton: { borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderGlow },
-  confirmButton: { backgroundColor: colors.primary },
+  cancelButton: { borderWidth: StyleSheet.hairlineWidth, borderColor: c.borderGlow },
+  confirmButton: { backgroundColor: c.primary },
   pressed: { opacity: 0.8 },
-  cancel: { color: colors.text, fontSize: 14, fontWeight: '500' },
-  confirm: { color: colors.onPrimary, fontSize: 14, fontWeight: '600' },
-});
+  cancel: { color: c.text, fontSize: 14, fontWeight: '500' },
+  confirm: { color: c.onPrimary, fontSize: 14, fontWeight: '600' },
+}));

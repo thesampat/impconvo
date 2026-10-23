@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radius, spacing, type } from '../../theme';
+import { makeStyles, radius, spacing, useColors } from '../../theme';
 
 interface GenerateButtonProps {
   label: string;
@@ -10,6 +10,8 @@ interface GenerateButtonProps {
 }
 
 export function GenerateButton({ label, loading, disabled, onPress }: GenerateButtonProps) {
+  const styles = useStyles();
+  const c = useColors();
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -24,7 +26,7 @@ export function GenerateButton({ label, loading, disabled, onPress }: GenerateBu
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={colors.onPrimary} />
+        <ActivityIndicator size="small" color={c.onPrimary} />
       ) : (
         <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled]}>{label}</Text>
       )}
@@ -36,8 +38,8 @@ export function errorMessage(e: unknown): string {
   return e instanceof Error && e.message ? e.message : 'Network error';
 }
 
-export const screenStyles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
+export const useScreenStyles = makeStyles((c, t) => ({
+  flex: { flex: 1, backgroundColor: c.background },
   content: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
@@ -46,54 +48,57 @@ export const screenStyles = StyleSheet.create({
     maxWidth: 680,
     alignSelf: 'center',
   },
-  title: { ...type.title },
-  subtitle: { ...type.caption, marginTop: spacing.xs },
+  title: { ...t.title },
+  subtitle: { ...t.caption, marginTop: spacing.xs },
   input: {
-    ...type.body,
+    ...t.body,
     marginTop: spacing.md,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
     textAlignVertical: 'top',
   },
-  inputFocused: { borderColor: colors.textMuted },
-  error: { ...type.caption, color: colors.error, marginTop: spacing.sm },
+  inputFocused: { borderColor: c.textMuted },
+  error: { ...t.caption, color: c.error, marginTop: spacing.sm },
   // Section header: a hairline rule with a small uppercase label, no card around the content
   sectionLabel: {
-    ...type.label,
+    ...t.label,
     marginTop: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.xs,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
   list: {},
   placeholderBox: {
     marginTop: spacing.lg,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
-  placeholderText: { ...type.caption, color: colors.textMuted },
-});
+  placeholderText: { ...t.caption, color: c.textMuted },
+}));
 
-export const placeholderTextColor = colors.textMuted;
+/** Placeholder colour for the screen inputs (the active theme's muted text) */
+export function usePlaceholderTextColor(): string {
+  return useColors().textMuted;
+}
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   button: {
     marginTop: spacing.sm,
     height: 38,
     borderRadius: radius.sm,
-    backgroundColor: colors.primary,
+    backgroundColor: c.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonDisabled: { backgroundColor: colors.surfaceVariant },
+  buttonDisabled: { backgroundColor: c.surfaceVariant },
   pressed: { opacity: 0.85 },
-  buttonText: { color: colors.onPrimary, fontWeight: '500', fontSize: 14 },
-  buttonTextDisabled: { color: colors.textMuted },
-});
+  buttonText: { color: c.onPrimary, fontWeight: '500', fontSize: 14 },
+  buttonTextDisabled: { color: c.textMuted },
+}));

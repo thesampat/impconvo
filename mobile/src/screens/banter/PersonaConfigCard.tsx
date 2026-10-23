@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, radius, spacing, type } from '../../theme';
+import { makeStyles, radius, spacing, useColors } from '../../theme';
 import { BANTER_PRESETS, CUSTOM_PRESET_INDEX, withAlpha } from './presets';
 import type { BotConfig } from './useBanter';
 
@@ -18,6 +18,8 @@ const CHIPS = [
 const CHIP_ROWS = [CHIPS.slice(0, 3), CHIPS.slice(3)];
 
 export default function PersonaConfigCard({ label, accentColor, config, onChange }: Props) {
+  const styles = useStyles();
+  const c = useColors();
   const update = (patch: Partial<BotConfig>) => onChange({ ...config, ...patch });
 
   return (
@@ -31,9 +33,9 @@ export default function PersonaConfigCard({ label, accentColor, config, onChange
         value={config.name}
         onChangeText={(name) => update({ name })}
         placeholder="Name (e.g. Rohan)"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={c.textMuted}
         style={styles.input}
-        selectionColor={colors.accent}
+        selectionColor={c.accent}
         autoCorrect={false}
         returnKeyType="done"
       />
@@ -67,9 +69,9 @@ export default function PersonaConfigCard({ label, accentColor, config, onChange
           value={config.customStyle}
           onChangeText={(customStyle) => update({ customStyle })}
           placeholder="e.g. passive-aggressive sommelier who despises cheap wine"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={c.textMuted}
           style={[styles.input, styles.customInput]}
-          selectionColor={colors.accent}
+          selectionColor={c.accent}
           returnKeyType="done"
         />
       )}
@@ -77,23 +79,23 @@ export default function PersonaConfigCard({ label, accentColor, config, onChange
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
   dot: { width: 6, height: 6, borderRadius: 3, marginRight: spacing.sm },
-  label: { ...type.label },
+  label: { ...t.label },
   input: {
     minHeight: 38,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
-    backgroundColor: colors.surface,
-    color: colors.text,
+    borderColor: c.borderGlow,
+    backgroundColor: c.surface,
+    color: c.text,
     fontSize: 15,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   customInput: { marginTop: spacing.sm, fontSize: 14 },
-  styleLabel: { ...type.caption, marginTop: spacing.md, marginBottom: spacing.xs },
+  styleLabel: { ...t.caption, marginTop: spacing.md, marginBottom: spacing.xs },
   chipGrid: { gap: spacing.xs },
   chipRow: { flexDirection: 'row', gap: spacing.xs },
   chip: {
@@ -103,9 +105,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
   },
-  chipSelected: { borderColor: colors.accent, backgroundColor: withAlpha(colors.accent, 0.08) },
-  chipText: { color: colors.textSecondary, fontSize: 13 },
-  chipTextSelected: { color: colors.accent, fontWeight: '500' },
-});
+  chipSelected: { borderColor: c.accent, backgroundColor: withAlpha(c.accent, 0.08) },
+  chipText: { color: c.textSecondary, fontSize: 13 },
+  chipTextSelected: { color: c.accent, fontWeight: '500' },
+}));

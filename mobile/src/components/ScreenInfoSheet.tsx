@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { ScreenId } from '../screens/types';
-import { colors, radius, spacing, type } from '../theme';
+import { makeStyles, radius, spacing } from '../theme';
 import { SCREEN_GUIDES } from './screenGuides';
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 }
 
 export default function ScreenInfoSheet({ visible, screen, onClose }: Props) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const guide = SCREEN_GUIDES[screen];
 
@@ -85,6 +86,7 @@ export default function ScreenInfoSheet({ visible, screen, onClose }: Props) {
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -93,14 +95,14 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
+const useStyles = makeStyles((c, t) => ({
+  root: { flex: 1, justifyContent: 'flex-end', backgroundColor: c.scrim },
   sheet: {
     width: '100%',
     maxWidth: 640,
     alignSelf: 'center',
     maxHeight: '90%',
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
   },
@@ -109,40 +111,40 @@ const styles = StyleSheet.create({
     width: 32,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.borderGlow,
+    backgroundColor: c.borderGlow,
     marginTop: spacing.sm,
   },
   content: { paddingHorizontal: spacing.lg, gap: spacing.md },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
-  title: { ...type.title, flex: 1 },
+  title: { ...t.title, flex: 1 },
   closeBtn: { width: 28, height: 28, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  closePressed: { backgroundColor: colors.surfaceVariant },
-  close: { color: colors.textMuted, fontSize: 14 },
-  subtitle: { ...type.caption, marginTop: -spacing.sm },
+  closePressed: { backgroundColor: c.surfaceVariant },
+  close: { color: c.textMuted, fontSize: 14 },
+  subtitle: { ...t.caption, marginTop: -spacing.sm },
   // Sections split by a hairline and a small label, not boxed
   section: {
     gap: spacing.xs,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
+    borderTopColor: c.divider,
   },
-  sectionTitle: type.label,
-  body: { color: colors.text, fontSize: 14, lineHeight: 21 },
+  sectionTitle: t.label,
+  body: { color: c.text, fontSize: 14, lineHeight: 21 },
   flex: { flex: 1 },
   exampleBox: {
     marginTop: spacing.xs,
-    backgroundColor: colors.background,
+    backgroundColor: c.background,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: 2,
   },
-  exampleLabel: { color: colors.textMuted, fontSize: 12, fontWeight: '500' },
-  exampleText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
+  exampleLabel: { color: c.textMuted, fontSize: 12, fontWeight: '500' },
+  exampleText: { color: c.textSecondary, fontSize: 13, lineHeight: 19 },
   stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   stepNum: {
     width: 16,
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 13,
     lineHeight: 21,
     fontWeight: '500',
@@ -150,20 +152,20 @@ const styles = StyleSheet.create({
   },
   tipCard: {
     borderLeftWidth: 2,
-    borderLeftColor: colors.accent,
+    borderLeftColor: c.accent,
     paddingLeft: spacing.md,
     paddingVertical: 2,
     gap: 2,
   },
-  tipTitle: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  tipText: { color: colors.textSecondary, fontSize: 13, lineHeight: 19 },
+  tipTitle: { color: c.text, fontSize: 13, fontWeight: '600' },
+  tipText: { color: c.textSecondary, fontSize: 13, lineHeight: 19 },
   button: {
-    backgroundColor: colors.primary,
+    backgroundColor: c.primary,
     borderRadius: radius.sm,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: { opacity: 0.8 },
-  buttonText: { color: colors.onPrimary, fontWeight: '600', fontSize: 15 },
-});
+  buttonText: { color: c.onPrimary, fontWeight: '600', fontSize: 15 },
+}));

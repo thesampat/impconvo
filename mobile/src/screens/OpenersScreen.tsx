@@ -4,7 +4,6 @@ import { useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,10 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '../api/client';
 import type { OpenerItem } from '../api/types';
-import { colors, radius, spacing } from '../theme';
+import { makeStyles, radius, spacing } from '../theme';
 import CopyToast from './openers/CopyToast';
 import ResultCard from './openers/ResultCard';
-import { GenerateButton, errorMessage, placeholderTextColor, screenStyles as s } from './openers/shared';
+import { GenerateButton, errorMessage, usePlaceholderTextColor, useScreenStyles } from './openers/shared';
 import { useCopyToast } from './openers/useCopyToast';
 
 interface PickedImage {
@@ -28,6 +27,9 @@ interface PickedImage {
 }
 
 export default function OpenersScreen() {
+  const s = useScreenStyles();
+  const styles = useStyles();
+  const placeholderTextColor = usePlaceholderTextColor();
   const insets = useSafeAreaInsets();
   const { toastVisible, copy } = useCopyToast();
 
@@ -78,7 +80,7 @@ export default function OpenersScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={s.flex} behavior="padding">
       <ScrollView
         contentContainerStyle={[s.content, { paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
@@ -146,7 +148,7 @@ export default function OpenersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   input: { minHeight: 84, maxHeight: 180 },
   attachRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
   attachButton: {
@@ -154,10 +156,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderGlow,
+    borderColor: c.borderGlow,
     justifyContent: 'center',
   },
-  attachText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
+  attachText: { color: c.textSecondary, fontSize: 13, fontWeight: '500' },
   pressed: { opacity: 0.7 },
   thumb: {
     width: 30,
@@ -165,9 +167,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     marginLeft: spacing.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceVariant,
+    borderColor: c.border,
+    backgroundColor: c.surfaceVariant,
   },
   remove: { marginLeft: spacing.sm, paddingHorizontal: spacing.xs, paddingVertical: 2 },
-  removeText: { color: colors.textMuted, fontSize: 13 },
-});
+  removeText: { color: c.textMuted, fontSize: 13 },
+}));

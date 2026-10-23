@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radius, spacing } from '../../theme';
+import { makeStyles, radius, spacing } from '../../theme';
 
 interface Props {
   visible: boolean;
@@ -10,6 +10,7 @@ interface Props {
 }
 
 export default function CopyToast({ visible, message = 'Copied' }: Props) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -32,16 +33,16 @@ export default function CopyToast({ visible, message = 'Copied' }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   toast: {
     position: 'absolute',
     alignSelf: 'center',
-    backgroundColor: colors.surfaceElevated,
-    borderColor: colors.borderGlow,
+    backgroundColor: c.surfaceElevated,
+    borderColor: c.borderGlow,
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  text: { color: colors.text, fontSize: 13, fontWeight: '500' },
-});
+  text: { color: c.text, fontSize: 13, fontWeight: '500' },
+}));

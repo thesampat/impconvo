@@ -7,7 +7,7 @@ import MisinterpretScreen from '../screens/MisinterpretScreen';
 import OpenersScreen from '../screens/OpenersScreen';
 import { SCREENS, type ScreenId } from '../screens/types';
 import { useSettings } from '../state/SettingsContext';
-import { colors } from '../theme';
+import { makeStyles } from '../theme';
 import AdminUnlockDialog from './AdminUnlockDialog';
 import Drawer from './Drawer';
 import ScreenInfoSheet from './ScreenInfoSheet';
@@ -21,6 +21,7 @@ const SCREEN_COMPONENTS: Record<ScreenId, ComponentType> = {
 };
 
 export default function AppShell() {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { isConnected, testConnection, isAdmin } = useSettings();
   const [current, setCurrent] = useState<ScreenId>('banter');
@@ -117,9 +118,9 @@ export default function AppShell() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
+const useStyles = makeStyles((c, t) => ({
+  root: { flex: 1, backgroundColor: c.background },
   content: { flex: 1 },
   screen: { flex: 1 },
   hidden: { display: 'none' },
-});
+}));
