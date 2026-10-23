@@ -230,22 +230,15 @@ export function useBanter() {
     [appendToFeed, fetchReply, personaA, personaB],
   );
 
-  // Edit a line the user already sent: everything after it (the replies to the old version)
-  // is dropped, the new version takes its place, and the other person answers again.
+  // Edit a line the user already sent: only its text changes. The rest of the conversation,
+  // including the replies that came after it, stays exactly as it was.
   const replaceMyMessage = useCallback(
     (id: number, text: string) => {
       const body = text.trim();
-      const index = messagesRef.current.findIndex((m) => m.id === id);
-      if (!body || index < 0) return;
-      // A reply still on its way answered the old version; drop it
-      const session = ++sessionRef.current;
-      setLoading(false);
-      setIsTyping(false);
-      setFeed(messagesRef.current.slice(0, index));
-      appendToFeed({ speaker: personaA, text: body });
-      fetchReply(session, personaA, personaB);
+      if (!body) return;
+      setFeed(messagesRef.current.map((m) => (m.id === id ? { ...m, text: body } : m)));
     },
-    [appendToFeed, fetchReply, personaA, personaB, setFeed, setLoading],
+    [setFeed],
   );
 
   const start = useCallback(async () => {

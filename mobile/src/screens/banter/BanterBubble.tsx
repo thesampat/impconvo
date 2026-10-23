@@ -1,4 +1,4 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { makeStyles, radius, useColors } from '../../theme';
 import { withAlpha } from './presets';
@@ -12,17 +12,47 @@ function bubbleCorners(isMine: boolean) {
   };
 }
 
-export function BanterChatBubble({ speaker, text, isMine }: { speaker: string; text: string; isMine: boolean }) {
+interface ChatBubbleProps {
+  speaker: string;
+  text: string;
+  isMine: boolean;
+  /** Tap the bubble (used to edit your own sent line) */
+  onPress?: () => void;
+  /** Shows a star beside the bubble that opens better versions of this line */
+  onStar?: () => void;
+}
+
+export function BanterChatBubble({ speaker, text, isMine, onPress, onStar }: ChatBubbleProps) {
   const styles = useStyles();
+  const bubble = (
+    <View style={[styles.bubble, bubbleCorners(isMine), isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
+      <Text style={[styles.text, isMine ? styles.textMine : styles.textTheirs]}>{text}</Text>
+    </View>
+  );
   return (
-    <View style={[styles.row, isMine && styles.rowEnd]}>
+    <View style={[styles.row, isMine && styles.rowEnd, styles.rowBottom]}>
+      {onStar ? (
+        <Pressable
+          onPress={onStar}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Better versions of this message"
+          style={({ pressed }) => [styles.star, pressed && styles.starPressed]}
+        >
+          <Text style={styles.starText}>✦</Text>
+        </Pressable>
+      ) : null}
       <View style={[styles.column, isMine && styles.columnEnd]}>
         <Text style={styles.speaker} numberOfLines={1}>
           {speaker}
         </Text>
-        <View style={[styles.bubble, bubbleCorners(isMine), isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
-          <Text style={[styles.text, isMine ? styles.textMine : styles.textTheirs]}>{text}</Text>
-        </View>
+        {onPress ? (
+          <Pressable onPress={onPress} accessibilityRole="button" accessibilityHint="Edit this message">
+            {bubble}
+          </Pressable>
+        ) : (
+          bubble
+        )}
       </View>
     </View>
   );
@@ -53,6 +83,17 @@ export function SystemErrorBubble({ text }: { text: string }) {
 const useStyles = makeStyles((c, t) => ({
   row: { flexDirection: 'row', justifyContent: 'flex-start' },
   rowEnd: { justifyContent: 'flex-end' },
+  rowBottom: { alignItems: 'flex-end' },
+  star: {
+    width: 28,
+    height: 28,
+    marginRight: 4,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  starPressed: { backgroundColor: c.surfaceVariant },
+  starText: { color: c.accent, fontSize: 15 },
   column: { maxWidth: '80%', alignItems: 'flex-start' },
   columnEnd: { alignItems: 'flex-end' },
   speaker: { color: c.textMuted, fontSize: 12, fontWeight: '500', marginBottom: 2, marginHorizontal: 2 },

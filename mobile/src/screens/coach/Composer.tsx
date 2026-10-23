@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useRef, type ComponentRef } from 'react';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { makeStyles, radius, spacing, useColors } from '../../theme';
 import { useDoubleTap } from './useDoubleTap';
@@ -27,12 +27,20 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
     if (hasText) onSuggest();
   }, [hasText, onSuggest]);
   const onInputPress = useDoubleTap(suggestIfText);
+  const inputRef = useRef<ComponentRef<typeof TextInput>>(null);
+
+  const submitFromKeyboard = () => {
+    if (!canSend) return;
+    onSend();
+    // Web only submits a multiline field by blurring it, so put the cursor back
+    if (Platform.OS === 'web') setTimeout(() => inputRef.current?.focus(), 50);
+  };
 
   return (
     <View style={[styles.wrapper, atTop && styles.wrapperTop, { paddingBottom: (atTop ? spacing.sm : spacing.md) + bottomInset }]}>
       {onCancelEdit ? (
         <View style={styles.editBar}>
-          <Text style={styles.editText}>Editing your message · replies after it will be redone</Text>
+          <Text style={styles.editText}>Editing your message · only its text changes</Text>
           <Pressable onPress={onCancelEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel editing">
             <Text style={styles.editCancel}>Cancel</Text>
           </Pressable>
@@ -48,12 +56,21 @@ export default function Composer({ value, onChangeText, onSend, onSuggest, isLoa
         </Pressable>
 
         <TextInput
+          ref={inputRef}
           value={value}
           onChangeText={onChangeText}
           onPressIn={onInputPress}
           placeholder="Type a response"
           placeholderTextColor={c.textMuted}
           multiline
+          // The keyboard's Enter key shows "Send" and sends (keeping the keyboard up) instead of
+          // adding a new line; long messages still wrap because the field stays multiline
+          returnKeyType="send"
+          enterKeyHint="send"
+          submitBehavior="submit"
+          // react-native-web ignores submitBehavior and only submits multiline fields with blurOnSubmit
+          {...(Platform.OS === 'web' ? { blurOnSubmit: true } : null)}
+          onSubmitEditing={submitFromKeyboard}
           style={styles.input}
         />
 
