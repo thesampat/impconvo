@@ -4,51 +4,51 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors, gradients, radius } from '../../theme';
 import { withAlpha } from './presets';
 
-function bubbleCorners(isPersonaB: boolean) {
+function bubbleCorners(isMine: boolean) {
   return {
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
-    borderBottomLeftRadius: isPersonaB ? 18 : 4,
-    borderBottomRightRadius: isPersonaB ? 4 : 18,
+    borderBottomLeftRadius: isMine ? 18 : 4,
+    borderBottomRightRadius: isMine ? 4 : 18,
   };
 }
 
-export function BanterChatBubble({ speaker, text, isPersonaB }: { speaker: string; text: string; isPersonaB: boolean }) {
+export function BanterChatBubble({ speaker, text, isMine }: { speaker: string; text: string; isMine: boolean }) {
   return (
-    <View style={[styles.row, isPersonaB && styles.rowEnd]}>
+    <View style={[styles.row, isMine && styles.rowEnd]}>
       <LinearGradient
-        colors={isPersonaB ? gradients.outgoingBubble : gradients.incomingBubble}
+        colors={isMine ? gradients.outgoingBubble : gradients.incomingBubble}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[
           styles.bubble,
-          bubbleCorners(isPersonaB),
-          { borderColor: isPersonaB ? colors.borderGlow : colors.border },
+          bubbleCorners(isMine),
+          { borderColor: isMine ? colors.borderGlow : colors.border },
         ]}
       >
         <View
           style={[
             styles.badge,
-            { backgroundColor: isPersonaB ? withAlpha(colors.accentPurple, 0.25) : withAlpha(colors.primary, 0.2) },
+            { backgroundColor: isMine ? withAlpha(colors.accentPurple, 0.25) : withAlpha(colors.primary, 0.2) },
           ]}
         >
-          <Text style={[styles.badgeText, { color: isPersonaB ? '#FFFFFF' : colors.primary }]}>
-            {isPersonaB ? `🔥 ${speaker}` : `⚡ ${speaker}`}
+          <Text style={[styles.badgeText, { color: isMine ? '#FFFFFF' : colors.primary }]}>
+            {isMine ? `⚡ ${speaker}` : `🔥 ${speaker}`}
           </Text>
         </View>
-        <Text style={[styles.text, isPersonaB && styles.textB]}>{text}</Text>
+        <Text style={[styles.text, isMine && styles.textB]}>{text}</Text>
       </LinearGradient>
     </View>
   );
 }
 
-export function BanterTypingBubble({ speaker, isPersonaB }: { speaker: string; isPersonaB: boolean }) {
-  const accent = isPersonaB ? colors.accentPurple : colors.primary;
+export function BanterTypingBubble({ speaker, isMine }: { speaker: string; isMine: boolean }) {
+  const accent = isMine ? colors.accentPurple : colors.primary;
   return (
-    <View style={[styles.row, isPersonaB && styles.rowEnd]}>
+    <View style={[styles.row, isMine && styles.rowEnd]}>
       <LinearGradient
         colors={gradients.incomingBubble}
-        style={[styles.typing, bubbleCorners(isPersonaB), { borderColor: withAlpha(accent, 0.4) }]}
+        style={[styles.typing, bubbleCorners(isMine), { borderColor: withAlpha(accent, 0.4) }]}
       >
         <Text style={[styles.typingText, { color: accent }]}>{speaker} is typing</Text>
         <ActivityIndicator size="small" color={accent} style={styles.typingSpinner} />

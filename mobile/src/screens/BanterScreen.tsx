@@ -111,7 +111,7 @@ function SetupView({ banter }: { banter: Banter }) {
         <View style={styles.cardGap}>
           <PersonaConfigCard
             label="Person A · you"
-            accentColor={colors.primary}
+            accentColor={colors.accentPurple}
             config={banter.botA}
             onChange={banter.setBotA}
           />
@@ -119,7 +119,7 @@ function SetupView({ banter }: { banter: Banter }) {
         <View style={styles.cardGapSmall}>
           <PersonaConfigCard
             label="Person B · the other person"
-            accentColor={colors.accentPurple}
+            accentColor={colors.primary}
             config={banter.botB}
             onChange={banter.setBotB}
           />
@@ -169,14 +169,14 @@ function ActiveSession({ banter }: { banter: Banter }) {
       item.speaker === SYSTEM_ERROR_SPEAKER ? (
         <SystemErrorBubble text={item.text} />
       ) : (
-        <BanterChatBubble speaker={item.speaker} text={item.text} isPersonaB={sameName(item.speaker, personaB)} />
+        <BanterChatBubble speaker={item.speaker} text={item.text} isMine={!sameName(item.speaker, personaB)} />
       ),
     [personaB],
   );
 
   const footer = (
     <>
-      {isTyping && <BanterTypingBubble speaker={typingSpeaker} isPersonaB={sameName(typingSpeaker, personaB)} />}
+      {isTyping && <BanterTypingBubble speaker={typingSpeaker} isMine={!sameName(typingSpeaker, personaB)} />}
       {isLoading && messages.length > 0 && (
         <View style={styles.loadingRow}>
           <View style={styles.loadingPill}>
@@ -221,13 +221,13 @@ function ActiveSession({ banter }: { banter: Banter }) {
         {expanded && (
           <View style={styles.versus}>
             <View style={styles.versusSide}>
-              <View style={[styles.dot, { backgroundColor: colors.primary }]} />
+              <View style={[styles.dot, { backgroundColor: colors.accentPurple }]} />
               <Text style={[styles.versusName, { color: colors.primary }]}>{personaA}</Text>
             </View>
             <Text style={styles.vs}>vs</Text>
             <View style={styles.versusSide}>
               <Text style={[styles.versusName, { color: colors.accentPurple }]}>{personaB}</Text>
-              <View style={[styles.dot, { backgroundColor: colors.accentPurple }]} />
+              <View style={[styles.dot, { backgroundColor: colors.primary }]} />
             </View>
           </View>
         )}
