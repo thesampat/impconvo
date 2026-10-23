@@ -2,7 +2,6 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   type ListRenderItem,
@@ -21,6 +20,7 @@ import { colors, gradients, radius } from '../theme';
 import { BanterChatBubble, BanterTypingBubble, SystemErrorBubble } from './banter/BanterBubble';
 import PersonaConfigCard from './banter/PersonaConfigCard';
 import PlaybackControls from './banter/PlaybackControls';
+import ResetDialog from './chat/ResetDialog';
 import { withAlpha } from './banter/presets';
 import { type FeedItem, SYSTEM_ERROR_SPEAKER, useBanter } from './banter/useBanter';
 
@@ -160,16 +160,9 @@ function ActiveSession({ banter }: { banter: Banter }) {
       ? { text: '● LIVE', color: colors.success }
       : { text: 'PAUSED', color: colors.textMuted };
 
-  const confirmReset = () => {
-    Alert.alert(
-      'Reset Conversation?',
-      'Are you sure you want to exit and set up new people or a new scenario?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: banter.reset },
-      ],
-    );
-  };
+  // A custom dialog rather than Alert.alert, which does nothing on web
+  const [showReset, setShowReset] = useState(false);
+  const confirmReset = () => setShowReset(true);
 
   const renderItem: ListRenderItem<FeedItem> = useCallback(
     ({ item }) =>
@@ -259,6 +252,17 @@ function ActiveSession({ banter }: { banter: Banter }) {
         onTogglePlay={banter.togglePlayPause}
         onNext={banter.skipNext}
         onContinue={banter.continueBanter}
+      />
+
+      <ResetDialog
+        visible={showReset}
+        title="Reset Conversation?"
+        message="Are you sure you want to exit and set up new people or a new scenario?"
+        onCancel={() => setShowReset(false)}
+        onConfirm={() => {
+          setShowReset(false);
+          banter.reset();
+        }}
       />
     </View>
   );

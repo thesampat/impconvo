@@ -6,19 +6,27 @@ interface Props {
   visible: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  title?: string;
+  message?: string;
 }
 
-export default function ResetDialog({ visible, onConfirm, onCancel }: Props) {
+const DEFAULT_MESSAGE =
+  'Are you sure you want to reset the current session? All chat messages and review feedback will be cleared.';
+
+export default function ResetDialog({
+  visible,
+  onConfirm,
+  onCancel,
+  title = 'Reset Chat Scenario?',
+  message = DEFAULT_MESSAGE,
+}: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
       <Pressable style={styles.backdrop} onPress={onCancel}>
         {/* Swallow taps on the card so they don't dismiss the dialog */}
         <Pressable style={styles.card} onPress={() => {}}>
-          <Text style={styles.title}>Reset Chat Scenario?</Text>
-          <Text style={styles.body}>
-            Are you sure you want to reset the current session? All chat messages and review feedback will be
-            cleared.
-          </Text>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.body}>{message}</Text>
           <View style={styles.actions}>
             <Pressable onPress={onCancel} style={styles.button} accessibilityRole="button">
               <Text style={styles.cancel}>Cancel</Text>
