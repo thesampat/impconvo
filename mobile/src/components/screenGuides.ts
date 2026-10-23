@@ -77,25 +77,26 @@ export const SCREEN_GUIDES: Record<ScreenId, ScreenGuide> = {
       "When someone makes a mundane statement, assume they're secretly bragging or testing you. It immediately changes the conversational dynamic!",
   },
   banter: {
-    title: 'AI Banter Match Simulator',
+    title: 'Watch & Learn',
     icon: '🎭',
-    subtitle: 'Watch 2 AI Personalities Text with Live Pacing',
+    subtitle: 'Watch a Simulated Conversation Unfold',
     purpose:
-      'Configure two distinct AI personas and watch them banter back-and-forth in real-time with 10-second pacing and live typing indicators. Study comedic timing, callbacks, and conversational rhythm.',
+      'Set up two people and watch a simulated conversation between them play out turn by turn, with 10-second pacing and typing indicators. Study comedic timing, callbacks, and conversational rhythm.',
     whatToInput:
-      'Enter a debate topic and choose the names and personality styles for Bot A and Bot B.',
+      'Choose whether they are talking online (texting) or in person, enter a topic, and pick names and personality styles for Person A and Person B.',
     inputExample:
       '"Arguing over who gets the last slice of pizza" or "Who is better at giving directions when driving"',
     whatYouGet:
-      "• Real-time animated chat exchange between two AI bots.\n• 10-second realistic typing delays with pulsing indicators.\n• Full playback controls: Pause, Resume, Next turn, and '+6 Turns' to continue.",
+      "• A simulated conversation that plays out like a real chat or in-person talk.\n• 10-second realistic typing delays with pulsing indicators.\n• Full playback controls: Pause, Resume, Next turn, and '+6 Turns' to continue.",
     steps: [
-      "Enter a fun debate topic, or tap 'Generate Idea' to get one.",
-      'Give Bot A and Bot B a name and pick a personality style for each (preset or custom).',
-      "Tap 'Start Banter Simulation'.",
-      'Watch the bots text each other turn-by-turn with 10s delays.',
-      "Tap Pause/Resume or Next to skip ahead, and tap '+6 Turns' to keep the banter going!",
+      "Pick 'Online (texting)' or 'In person'.",
+      "Enter a fun topic, or tap 'Generate Idea' to get one.",
+      'Give Person A and Person B a name and pick a personality style for each (preset or custom).',
+      "Tap 'Start Conversation'.",
+      'Watch them talk turn-by-turn with 10s delays.',
+      "Tap Pause/Resume or Next to skip ahead, and tap '+6 Turns' to keep it going!",
     ],
     proTip:
-      "Try pairing contrasting personas (like 'Cocky & Confident' vs 'Dry & Reluctant') to create hilarious banter dynamics!",
+      "Try pairing contrasting personalities (like 'Cocky & Confident' vs 'Dry & Reluctant') to see how banter plays off each other!",
   },
 };

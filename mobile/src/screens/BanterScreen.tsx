@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import type { ConversationSetting } from '../api/types';
 import { colors, gradients, radius } from '../theme';
 import { BanterChatBubble, BanterTypingBubble, SystemErrorBubble } from './banter/BanterBubble';
 import PersonaConfigCard from './banter/PersonaConfigCard';
@@ -37,6 +38,11 @@ export default function BanterScreen() {
 
 type Banter = ReturnType<typeof useBanter>;
 
+const SETTING_OPTIONS: { id: ConversationSetting; label: string }[] = [
+  { id: 'online', label: '💬 Online (texting)' },
+  { id: 'in_person', label: '🗣️ In person' },
+];
+
 function SetupView({ banter }: { banter: Banter }) {
   const { topicInput, isGeneratingTopic, isLoading } = banter;
   const hasTopic = topicInput.trim().length > 0;
@@ -49,8 +55,26 @@ function SetupView({ banter }: { banter: Banter }) {
         keyboardDismissMode="on-drag"
       >
         <View style={styles.titleRow}>
-          <Text style={styles.title}>⚡ AI Banter Match</Text>
+          <Text style={styles.title}>🎭 Watch & Learn</Text>
           <Text style={styles.titleTag}>• 10s Turns</Text>
+        </View>
+
+        <Text style={[styles.sectionLabel, styles.settingLabel]}>Where are they talking?</Text>
+        <View style={styles.settingRow}>
+          {SETTING_OPTIONS.map((option) => {
+            const selected = banter.setting === option.id;
+            return (
+              <Pressable
+                key={option.id}
+                onPress={() => banter.setSetting(option.id)}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                style={[styles.settingChip, selected && styles.settingChipSelected]}
+              >
+                <Text style={[styles.settingText, selected && styles.settingTextSelected]}>{option.label}</Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         <View style={styles.topicHeader}>
@@ -86,7 +110,7 @@ function SetupView({ banter }: { banter: Banter }) {
 
         <View style={styles.cardGap}>
           <PersonaConfigCard
-            label="Bot A (Speaker 1)"
+            label="Person A"
             accentColor={colors.primary}
             config={banter.botA}
             onChange={banter.setBotA}
@@ -94,7 +118,7 @@ function SetupView({ banter }: { banter: Banter }) {
         </View>
         <View style={styles.cardGapSmall}>
           <PersonaConfigCard
-            label="Bot B (Speaker 2)"
+            label="Person B"
             accentColor={colors.accentPurple}
             config={banter.botB}
             onChange={banter.setBotB}
@@ -116,7 +140,7 @@ function SetupView({ banter }: { banter: Banter }) {
             {isLoading ? (
               <ActivityIndicator color={colors.onPrimary} />
             ) : (
-              <Text style={styles.startText}>Start Banter Simulation ▶</Text>
+              <Text style={styles.startText}>Start Conversation ▶</Text>
             )}
           </LinearGradient>
         </Pressable>
@@ -131,14 +155,14 @@ function ActiveSession({ banter }: { banter: Banter }) {
   const listRef = useRef<FlatList<FeedItem>>(null);
 
   const status = isLoading
-    ? { text: 'AI Thinking...', color: colors.accentAmber }
+    ? { text: 'Writing...', color: colors.accentAmber }
     : isPlaying
       ? { text: '● LIVE', color: colors.success }
       : { text: 'PAUSED', color: colors.textMuted };
 
   const confirmReset = () => {
     Alert.alert(
-      'Reset Banter Simulation?',
+      'Reset Conversation?',
       'Are you sure you want to exit and configure new personas or a new debate topic?',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -250,6 +274,22 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   title: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
   titleTag: { color: colors.primary, fontSize: 11, fontWeight: '600', marginLeft: 8 },
+  settingLabel: { marginBottom: 6 },
+  settingRow: {
+    flexDirection: 'row',
+    padding: 4,
+    marginBottom: 14,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+  },
+  settingChip: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: radius.sm },
+  settingChipSelected: {
+    backgroundColor: withAlpha(colors.primary, 0.15),
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  settingText: { color: colors.textMuted, fontSize: 13, fontWeight: '500' },
+  settingTextSelected: { color: colors.primary, fontWeight: '700' },
   topicHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   sectionLabel: { color: colors.text, fontSize: 13, fontWeight: '600' },
   ideaButton: {

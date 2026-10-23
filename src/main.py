@@ -359,6 +359,7 @@ def api_banter(req: BanterRequest, request: Request):
             persona_b_name=req.persona_b_name,
             persona_b_style=req.persona_b_style,
             chat_history=history_dicts,
+            setting=req.setting,
             model_name=model_name,
             user_id=user_id
         )

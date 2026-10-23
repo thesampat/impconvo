@@ -44,9 +44,18 @@ def generate_banter_agent(
     persona_b_name: Optional[str] = None,
     persona_b_style: Optional[str] = None,
     chat_history: Optional[List[Dict]] = None,
+    setting: Optional[str] = "online",
     model_name: Optional[str] = None,
     user_id: Optional[str] = None
 ) -> Dict:
+    in_person = (setting or "").strip().lower() in ("in_person", "in-person", "real", "offline")
+    if in_person:
+        medium = "a face-to-face, in-person conversation"
+        line_style = "like real people talking out loud in person (spoken dialogue, no references to texting or phones)"
+    else:
+        medium = "a texting conversation"
+        line_style = "like real witty texting"
+
     # If no topic provided, use Gemini to dynamically generate a witty debate topic
     if not topic or not str(topic).strip():
         topic_llm = get_llm(model_name=model_name, temperature=0.9)
@@ -75,7 +84,8 @@ def generate_banter_agent(
         else:
             next_speaker = name_a
 
-    system_prompt = f"""You are writing a fun, witty, realistic texting banter dialogue between two people: {name_a} and {name_b}.
+    system_prompt = f"""You are writing a fun, witty, realistic banter dialogue between two people: {name_a} and {name_b}.
+The conversation happens as {medium}.
 
 {name_a}'s personality: {style_a}
 {name_b}'s personality: {style_b}
@@ -85,7 +95,7 @@ They are bantering about: {topic}
 
 Rules:
 - Generate exactly {num_turns} exchanges (alternating turns starting with {next_speaker}).
-- Each line must be SHORT (under 15 words), punchy, and natural-sounding — like real witty texting.
+- Each line must be SHORT (under 15 words), punchy, and natural-sounding — {line_style}.
 - Use a mix of playful teasing, cheeky callbacks, self-deprecating humor, and cocky reversals.
 - Do NOT use emojis.
 - Standard English ONLY.

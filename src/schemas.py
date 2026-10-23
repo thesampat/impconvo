@@ -109,6 +109,8 @@ class BanterRequest(BaseModel):
     persona_b_name: Optional[str] = "Jordan"
     persona_b_style: Optional[str] = None
     chat_history: Optional[List[MessageModel]] = None
+    # "online" (texting) or "in_person" (talking face to face)
+    setting: Optional[str] = "online"
 
 class BanterExchange(BaseModel):
     speaker: str

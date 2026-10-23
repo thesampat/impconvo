@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '../../api/client';
-import type { BanterExchange, BanterRequest } from '../../api/types';
+import type { BanterExchange, BanterRequest, ConversationSetting } from '../../api/types';
 import { getPersonaStyle } from './presets';
 
 const FIRST_TURN_DELAY_MS = 1500;
@@ -32,6 +32,7 @@ export function useBanter() {
   const [topicInput, setTopicInput] = useState('');
   const [botA, setBotA] = useState<BotConfig>({ name: 'Alex', presetIndex: 2, customStyle: '' });
   const [botB, setBotB] = useState<BotConfig>({ name: 'Jordan', presetIndex: 0, customStyle: '' });
+  const [setting, setSetting] = useState<ConversationSetting>('online');
   const [isGeneratingTopic, setIsGeneratingTopic] = useState(false);
 
   // Session
@@ -132,9 +133,9 @@ export function useBanter() {
         category: TOPIC_CATEGORY,
         previous_scenario: topicInput.trim() ? topicInput : null,
       });
-      setTopicInput(res.scenario.trim() ? res.scenario : 'Error: AI generated an empty topic');
+      setTopicInput(res.scenario.trim() ? res.scenario : 'Error: got an empty topic, try again');
     } catch (e) {
-      setTopicInput(`Error: Failed to generate idea via AI (${errorMessage(e, 'Check connection')})`);
+      setTopicInput(`Error: Failed to generate an idea (${errorMessage(e, 'Check connection')})`);
     } finally {
       setIsGeneratingTopic(false);
     }
@@ -151,6 +152,7 @@ export function useBanter() {
       persona_a_style: getPersonaStyle(botA.presetIndex, botA.customStyle),
       persona_b_name: nameB,
       persona_b_style: getPersonaStyle(botB.presetIndex, botB.customStyle),
+      setting,
     };
 
     clearTimer();
@@ -176,7 +178,7 @@ export function useBanter() {
     } catch (e) {
       if (session !== sessionRef.current) return;
       setLoading(false);
-      setTopic(trimmedTopic || 'AI Debate');
+      setTopic(trimmedTopic || 'Random Topic');
       setPersonaA(nameA);
       setPersonaB(nameB);
       setFeed([
@@ -187,7 +189,7 @@ export function useBanter() {
         },
       ]);
     }
-  }, [botA, botB, clearTimer, scheduleNext, setFeed, setLoading, setPlaying, setQueue, topicInput]);
+  }, [botA, botB, clearTimer, scheduleNext, setFeed, setLoading, setPlaying, setQueue, setting, topicInput]);
 
   const togglePlayPause = useCallback(() => {
     if (playingRef.current) {
@@ -222,6 +224,7 @@ export function useBanter() {
       persona_a_style: getPersonaStyle(botA.presetIndex, botA.customStyle),
       persona_b_name: personaB,
       persona_b_style: getPersonaStyle(botB.presetIndex, botB.customStyle),
+      setting,
       chat_history: messagesRef.current
         .filter((m) => m.speaker !== SYSTEM_ERROR_SPEAKER)
         .map((m) => ({ sender: m.speaker, body: m.text })),
@@ -241,7 +244,7 @@ export function useBanter() {
         text: `Failed to continue banter: ${errorMessage(e, 'Unknown error')}`,
       });
     }
-  }, [appendToFeed, botA, botB, personaA, personaB, scheduleNext, setLoading, setPlaying, setQueue, topic]);
+  }, [appendToFeed, botA, botB, personaA, personaB, scheduleNext, setLoading, setPlaying, setQueue, setting, topic]);
 
   const reset = useCallback(() => {
     sessionRef.current++;
@@ -263,6 +266,8 @@ export function useBanter() {
     setBotA,
     botB,
     setBotB,
+    setting,
+    setSetting,
     isGeneratingTopic,
     generateTopic,
     start,

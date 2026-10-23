@@ -92,6 +92,8 @@ export interface MisinterpretResponse {
   misinterpretations: MisinterpretItem[];
 }
 
+export type ConversationSetting = 'online' | 'in_person';
+
 export interface BanterRequest {
   topic?: string | null;
   num_turns?: number;
@@ -100,6 +102,7 @@ export interface BanterRequest {
   persona_b_name?: string;
   persona_b_style?: string | null;
   chat_history?: MessageModel[] | null;
+  setting?: ConversationSetting;
 }
 
 export interface BanterExchange {
