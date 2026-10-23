@@ -100,7 +100,7 @@ function SetupView({ banter }: { banter: Banter }) {
         <TextInput
           value={topicInput}
           onChangeText={banter.setTopicInput}
-          placeholder="e.g. Approaching a girl at a cafe, or matched on Hinge and sending the first message"
+          placeholder="e.g. I approach a girl at a cafe, or a girl asks me for directions on the street"
           placeholderTextColor={withAlpha(colors.textMuted, 0.6)}
           multiline
           textAlignVertical="top"
@@ -110,7 +110,7 @@ function SetupView({ banter }: { banter: Banter }) {
 
         <View style={styles.cardGap}>
           <PersonaConfigCard
-            label="Person A · starts the conversation (you)"
+            label="Person A · you"
             accentColor={colors.primary}
             config={banter.botA}
             onChange={banter.setBotA}

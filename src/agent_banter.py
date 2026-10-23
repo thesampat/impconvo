@@ -69,7 +69,7 @@ def generate_banter_agent(
 
 
     history_context = ""
-    next_speaker = name_a
+    next_speaker = None  # first turn: whoever the scenario says starts
     if chat_history and len(chat_history) > 0:
         lines = []
         for msg in chat_history:
@@ -84,6 +84,14 @@ def generate_banter_agent(
         else:
             next_speaker = name_a
 
+    if next_speaker:
+        first_turn_rule = f"starting with {next_speaker}."
+    else:
+        first_turn_rule = (
+            "starting with whoever initiates in the scenario (e.g. if someone approaches or asks "
+            f"{name_a}, that person ({name_b}) speaks first; if {name_a} approaches or messages, {name_a} speaks first)."
+        )
+
     system_prompt = f"""You are writing a realistic, witty conversation between two people: {name_a} and {name_b}.
 The conversation happens as {medium}.
 
@@ -91,8 +99,8 @@ Scenario: {topic}
 
 Roles:
 - {name_a} and {name_b} are the two people IN this scenario, talking directly to each other.
-- {name_a} is the one who starts it (e.g. the person approaching or sending the first message).
-- {name_b} is the other person in the scenario (e.g. the person being approached), reacting in real time.
+- {name_a} is the user: whenever the scenario says "I", "me" or "my", that is {name_a}.
+- {name_b} is the other person in the scenario (e.g. "a girl", "a stranger", "my match").
 - Never write them as two onlookers or friends commenting on the scenario or on a third person.
 
 {name_a}'s personality: {style_a}
@@ -100,9 +108,9 @@ Roles:
 {history_context}
 
 Rules:
-- Generate exactly {num_turns} exchanges (alternating turns starting with {next_speaker}).
+- Generate exactly {num_turns} exchanges, alternating turns, {first_turn_rule}
 - Each line must be SHORT (under 15 words), punchy, and natural-sounding — {line_style}.
-- Stay in character: {name_b} should respond the way a real person in that situation would, warming up only if {name_a} earns it.
+- Stay in character: each person responds the way a real person in that situation would.
 - Use playful teasing, callbacks, light self-deprecation, and confident reversals where they fit.
 - Do NOT use emojis.
 - Standard English ONLY.
@@ -119,7 +127,7 @@ No markdown formatting. Raw JSON only."""
     llm = get_llm(json_mode=True, model_name=model_name, temperature=0.9)
     message = HumanMessage(content=[
         {"type": "text", "text": system_prompt},
-        {"type": "text", "text": f"Begin the conversation now starting with {next_speaker}."}
+        {"type": "text", "text": f"Begin the conversation now, {first_turn_rule}"}
     ])
 
     try:

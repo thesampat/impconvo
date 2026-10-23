@@ -81,17 +81,17 @@ export const SCREEN_GUIDES: Record<ScreenId, ScreenGuide> = {
     icon: '🎭',
     subtitle: 'Watch a Simulated Conversation Unfold',
     purpose:
-      'Describe a situation and watch the two people in it talk to each other turn by turn: Person A starts the conversation (that is you), Person B is the other person. Study comedic timing, callbacks, and conversational rhythm.',
+      'Describe a situation and watch the two people in it talk to each other turn by turn: Person A is you (the "I" in the scenario), Person B is the other person. Whoever starts in the scenario speaks first. Study comedic timing, callbacks, and conversational rhythm.',
     whatToInput:
-      'Choose online (texting) or in person, describe the scenario, and pick names and personality styles for Person A (you, starting the conversation) and Person B (the other person).',
+      'Choose online (texting) or in person, describe the scenario, and pick names and personality styles for Person A (you) and Person B (the other person).',
     inputExample:
-      '"Approaching a girl at a cafe" or "Matched on Hinge and sending the first message"',
+      '"I approach a girl at a cafe" or "A girl asks me for directions on the street"',
     whatYouGet:
       "• A simulated conversation that plays out like a real chat or in-person talk.\n• 10-second realistic typing delays with pulsing indicators.\n• Full playback controls: Pause, Resume, Next turn, and '+6 Turns' to continue.",
     steps: [
       "Pick 'Online (texting)' or 'In person'.",
       "Describe the scenario, or tap 'Generate Idea' to get one.",
-      'Name Person A (you, who starts it) and Person B (the other person), and pick a personality style for each.',
+      'Name Person A (you) and Person B (the other person), and pick a personality style for each.',
       "Tap 'Start Conversation'.",
       'Watch them talk turn-by-turn with 10s delays.',
       "Tap Pause/Resume or Next to skip ahead, and tap '+6 Turns' to keep it going!",
