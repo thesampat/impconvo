@@ -78,7 +78,7 @@ function SetupView({ banter }: { banter: Banter }) {
         </View>
 
         <View style={styles.topicHeader}>
-          <Text style={styles.sectionLabel}>What are they talking about?</Text>
+          <Text style={styles.sectionLabel}>Scenario</Text>
           <Pressable
             onPress={banter.generateTopic}
             disabled={isGeneratingTopic}
@@ -100,7 +100,7 @@ function SetupView({ banter }: { banter: Banter }) {
         <TextInput
           value={topicInput}
           onChangeText={banter.setTopicInput}
-          placeholder="e.g. Ran into each other at a coffee shop, or planning a first date"
+          placeholder="e.g. Approaching a girl at a cafe, or matched on Hinge and sending the first message"
           placeholderTextColor={withAlpha(colors.textMuted, 0.6)}
           multiline
           textAlignVertical="top"
@@ -110,7 +110,7 @@ function SetupView({ banter }: { banter: Banter }) {
 
         <View style={styles.cardGap}>
           <PersonaConfigCard
-            label="Person A"
+            label="Person A · starts the conversation (you)"
             accentColor={colors.primary}
             config={banter.botA}
             onChange={banter.setBotA}
@@ -118,7 +118,7 @@ function SetupView({ banter }: { banter: Banter }) {
         </View>
         <View style={styles.cardGapSmall}>
           <PersonaConfigCard
-            label="Person B"
+            label="Person B · the other person"
             accentColor={colors.accentPurple}
             config={banter.botB}
             onChange={banter.setBotB}
@@ -163,7 +163,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
   const confirmReset = () => {
     Alert.alert(
       'Reset Conversation?',
-      'Are you sure you want to exit and set up new people or a new topic?',
+      'Are you sure you want to exit and set up new people or a new scenario?',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Reset', style: 'destructive', onPress: banter.reset },
@@ -208,7 +208,7 @@ function ActiveSession({ banter }: { banter: Banter }) {
             <Text style={styles.chevronText}>{expanded ? '▴' : '▾'}</Text>
           </View>
           <Text style={styles.topicLine} numberOfLines={expanded ? 3 : 1}>
-            <Text style={styles.topicPrefix}>Topic: </Text>
+            <Text style={styles.topicPrefix}>Scenario: </Text>
             {banter.topic.trim() || 'Playful Banter'}
           </Text>
           <View style={[styles.statusPill, { backgroundColor: withAlpha(status.color, 0.15) }]}>

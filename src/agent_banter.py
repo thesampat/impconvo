@@ -56,10 +56,10 @@ def generate_banter_agent(
         medium = "a texting conversation"
         line_style = "like real witty texting"
 
-    # If no topic provided, use Gemini to dynamically generate a playful conversation topic
+    # If no scenario provided, use Gemini to dynamically generate one
     if not topic or not str(topic).strip():
         topic_llm = get_llm(model_name=model_name, temperature=0.9)
-        topic_res = topic_llm.invoke("Give a single short, playful conversation topic for two witty friends (e.g. who makes worse coffee). Output ONLY the topic, under 8 words, no quotes.")
+        topic_res = topic_llm.invoke("Give a single short, realistic social scenario where one person starts a conversation with another (e.g. approaching someone at a cafe, or matched on Hinge). Output ONLY the scenario, under 10 words, no quotes.")
         topic = extract_text_content(topic_res.content).strip().strip('"').strip("'")
 
     name_a = (persona_a_name or "Alex").strip()
@@ -76,7 +76,7 @@ def generate_banter_agent(
             sender = msg.get("sender") or msg.get("speaker") or "Speaker"
             body = msg.get("body") or msg.get("text") or ""
             lines.append(f"[{sender}]: {body}")
-        history_context = "\nPrevious chat transcript so far:\n" + "\n".join(lines) + "\n\nContinue the banter seamlessly from this point without repeating previous lines."
+        history_context = "\nPrevious chat transcript so far:\n" + "\n".join(lines) + "\n\nContinue the conversation seamlessly from this point without repeating previous lines."
         # Determine who should speak next
         last_sender = (chat_history[-1].get("sender") or chat_history[-1].get("speaker") or "").strip()
         if last_sender.lower() == name_a.lower():
@@ -84,19 +84,26 @@ def generate_banter_agent(
         else:
             next_speaker = name_a
 
-    system_prompt = f"""You are writing a fun, witty, realistic banter dialogue between two people: {name_a} and {name_b}.
+    system_prompt = f"""You are writing a realistic, witty conversation between two people: {name_a} and {name_b}.
 The conversation happens as {medium}.
+
+Scenario: {topic}
+
+Roles:
+- {name_a} and {name_b} are the two people IN this scenario, talking directly to each other.
+- {name_a} is the one who starts it (e.g. the person approaching or sending the first message).
+- {name_b} is the other person in the scenario (e.g. the person being approached), reacting in real time.
+- Never write them as two onlookers or friends commenting on the scenario or on a third person.
 
 {name_a}'s personality: {style_a}
 {name_b}'s personality: {style_b}
-
-They are bantering about: {topic}
 {history_context}
 
 Rules:
 - Generate exactly {num_turns} exchanges (alternating turns starting with {next_speaker}).
 - Each line must be SHORT (under 15 words), punchy, and natural-sounding — {line_style}.
-- Use a mix of playful teasing, cheeky callbacks, self-deprecating humor, and cocky reversals.
+- Stay in character: {name_b} should respond the way a real person in that situation would, warming up only if {name_a} earns it.
+- Use playful teasing, callbacks, light self-deprecation, and confident reversals where they fit.
 - Do NOT use emojis.
 - Standard English ONLY.
 - Return a valid JSON object like this:
@@ -112,7 +119,7 @@ No markdown formatting. Raw JSON only."""
     llm = get_llm(json_mode=True, model_name=model_name, temperature=0.9)
     message = HumanMessage(content=[
         {"type": "text", "text": system_prompt},
-        {"type": "text", "text": f"Begin the banter exchanges now starting with {next_speaker}."}
+        {"type": "text", "text": f"Begin the conversation now starting with {next_speaker}."}
     ])
 
     try:
