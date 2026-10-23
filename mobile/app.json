@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "ProovCon",
+    "slug": "proovcon",
+    "version": "1.0.8",
+    "orientation": "portrait",
+    "icon": "./assets/images/app_logo.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0D0D12",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "package.proovcon"
+    },
+    "android": {
+      "package": "package.proovcon",
+      "versionCode": 9,
+      "adaptiveIcon": {
+        "backgroundColor": "#0D0D12",
+        "foregroundImage": "./assets/images/app_logo.png"
+      },
+      "permissions": ["android.permission.INTERNET"],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow ProovCon to read a screenshot so it can suggest openers.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
+    ]
+  }
+}
