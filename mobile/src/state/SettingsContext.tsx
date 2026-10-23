@@ -4,6 +4,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
+import { IS_ADMIN_BUILD } from '../appVariant';
 import { api, ApiError, setAdminCode, setDeviceId, verifyAdminCode } from '../api/client';
 import type { AdminSettings, AdminSettingsPatch, AdminUsage } from '../api/types';
 
@@ -163,6 +164,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setDeviceId(id);
       testConnection();
 
+      // The public app never uses admin mode, so it never looks for or sends an admin code
+      if (!IS_ADMIN_BUILD) return;
       let stored: string | null = null;
       try {
         stored = await AsyncStorage.getItem(ADMIN_CODE_KEY);

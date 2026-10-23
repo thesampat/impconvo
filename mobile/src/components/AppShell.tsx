@@ -6,6 +6,7 @@ import BanterScreen from '../screens/BanterScreen';
 import MisinterpretScreen from '../screens/MisinterpretScreen';
 import OpenersScreen from '../screens/OpenersScreen';
 import { SCREENS, type ScreenId } from '../screens/types';
+import { IS_ADMIN_BUILD } from '../appVariant';
 import { useSettings } from '../state/SettingsContext';
 import { makeStyles } from '../theme';
 import AdminUnlockDialog from './AdminUnlockDialog';
@@ -93,13 +94,9 @@ export default function AppShell() {
           setDrawerOpen(false);
         }}
         onAdmin={(section) => {
-          afterDrawerClose.current = () => openAdmin(section);
-          setDrawerOpen(false);
-        }}
-        onBrandSecretTap={() => {
-          // Hidden admin entry: unlock if needed, otherwise straight to admin settings
+          // Admin app only: ask for the code the first time, then open the panel
           const admin = isAdmin;
-          afterDrawerClose.current = () => (admin ? openAdmin('usage') : setShowUnlock(true));
+          afterDrawerClose.current = () => (admin ? openAdmin(section) : setShowUnlock(true));
           setDrawerOpen(false);
         }}
         onClosed={() => {
@@ -108,12 +105,20 @@ export default function AppShell() {
         }}
       />
       <ScreenInfoSheet visible={showInfo} screen={current} onClose={() => setShowInfo(false)} />
-      <SettingsDialog visible={showSettings} section={adminSection} onClose={() => setShowSettings(false)} />
-      <AdminUnlockDialog
-        visible={showUnlock}
-        onClose={() => setShowUnlock(false)}
-        onUnlocked={() => setShowUnlock(false)}
-      />
+      {IS_ADMIN_BUILD && (
+        <>
+          <SettingsDialog visible={showSettings} section={adminSection} onClose={() => setShowSettings(false)} />
+          <AdminUnlockDialog
+            visible={showUnlock}
+            onClose={() => setShowUnlock(false)}
+            onUnlocked={() => {
+              setShowUnlock(false);
+              // Straight into the panel; wait for the unlock Modal to close first (iOS can't stack them)
+              setTimeout(() => openAdmin('usage'), 350);
+            }}
+          />
+        </>
+      )}
     </View>
   );
 }

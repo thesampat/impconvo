@@ -13,14 +13,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SCREENS, type ScreenId } from '../screens/types';
+import { IS_ADMIN_BUILD } from '../appVariant';
 import { useSettings } from '../state/SettingsContext';
 import { useTheme } from '../state/ThemeContext';
 import { type AdminSection } from './SettingsDialog';
 import { THEMES, makeStyles, radius, spacing, useColors } from '../theme';
 
 const DRAWER_WIDTH = 310;
-const SECRET_TAP_COUNT = 5;
-const SECRET_TAP_WINDOW_MS = 3000;
 const logo = require('../../assets/images/app_logo_mark.png');
 
 interface Props {
@@ -30,29 +29,17 @@ interface Props {
   onSelect: (id: ScreenId) => void;
   onGuide: () => void;
   onAdmin: (section: AdminSection) => void;
-  /** Hidden admin gesture: 5 quick taps on the logo/brand block */
-  onBrandSecretTap: () => void;
   /** Called once the close animation has finished and the Modal is gone */
   onClosed?: () => void;
 }
 
-export default function Drawer({ open, current, onClose, onSelect, onGuide, onAdmin, onBrandSecretTap, onClosed }: Props) {
+export default function Drawer({ open, current, onClose, onSelect, onGuide, onAdmin, onClosed }: Props) {
   const styles = useStyles();
   const c = useColors();
   const { theme, setTheme } = useTheme();
   const insets = useSafeAreaInsets();
   const { isConnected, isTesting, testConnection, isAdmin } = useSettings();
   const progress = useRef(new Animated.Value(0)).current;
-  // Hidden admin entry: 5 quick taps on the logo
-  const taps = useRef<number[]>([]);
-  const onBrandTap = () => {
-    const now = Date.now();
-    taps.current = [...taps.current.filter((t) => now - t < SECRET_TAP_WINDOW_MS), now];
-    if (taps.current.length >= SECRET_TAP_COUNT) {
-      taps.current = [];
-      onBrandSecretTap();
-    }
-  };
   // Keep the Modal mounted until the close animation finishes
   const [mounted, setMounted] = useState(open);
 
@@ -90,14 +77,13 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
         ]}
       >
         <View style={styles.header}>
-          {/* No press feedback or a11y hint on purpose: the 5 taps are a hidden admin entry point */}
-          <Pressable onPress={onBrandTap} style={styles.brandRow}>
+          <View style={styles.brandRow}>
             <Image source={logo} style={styles.logo} accessibilityLabel="App Logo" />
             <View>
               <Text style={styles.brand}>ProovCon</Text>
               <Text style={styles.tagline}>AI Texting Coach</Text>
             </View>
-          </Pressable>
+          </View>
 
           {isAdmin && (
             <Pressable
@@ -142,7 +128,8 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
           })}
         </View>
 
-        {isAdmin && (
+        {/* Only the owner's "ProovCon Admin" app has this section; the public app has no admin UI */}
+        {IS_ADMIN_BUILD && (
           <>
             <Text style={styles.sectionLabel}>Admin</Text>
             <View style={styles.nav}>
@@ -153,7 +140,8 @@ export default function Drawer({ open, current, onClose, onSelect, onGuide, onAd
                 style={({ pressed }) => [styles.navItem, pressed && styles.pressed]}
               >
                 <View style={styles.activeBar} />
-                <Text style={styles.navText}>Admin panel</Text>
+                <Text style={[styles.navText, styles.flex]}>Admin panel</Text>
+                {!isAdmin ? <Text style={styles.navHint}>Enter code</Text> : null}
               </Pressable>
             </View>
           </>
@@ -257,6 +245,7 @@ const useStyles = makeStyles((c, t) => ({
   swatch: { width: 12, height: 12, borderRadius: radius.sm },
   check: { color: c.accent, fontSize: 14, fontWeight: '600' },
   flex: { flex: 1 },
+  navHint: { color: c.textMuted, fontSize: 13 },
   pressed: { backgroundColor: c.surfaceVariant },
   spacer: { flex: 1 },
   footer: {
